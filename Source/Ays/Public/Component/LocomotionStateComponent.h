@@ -8,7 +8,7 @@
 #include "LocomotionStateComponent.generated.h"
 
 struct FGameplayTag;
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLocomotionStateChanged, const FGameplayTag Tag, bool bAdded);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLocomotionStateChanged, const FGameplayTag& Tag, bool bAdded);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AYS_API ULocomotionStateComponent : public UActorComponent
@@ -20,8 +20,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	FGameplayTagContainer CurrentStates;
-
-	UPROPERTY()
+	
 	FOnLocomotionStateChanged OnLocomotionStateChanged;
 	
 	void TryAddState(const FGameplayTag& Tag);

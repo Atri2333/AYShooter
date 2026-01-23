@@ -23,12 +23,12 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void SetupInputComponent() override;
-	
-protected:
 
 	// Locomotion State Comp
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<ULocomotionStateComponent> LocomotionStateComponent;
+	
+protected:
 
 	// 基础的IMC，负责基础的人物交互
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")

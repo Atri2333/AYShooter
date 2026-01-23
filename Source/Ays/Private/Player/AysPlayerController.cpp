@@ -52,7 +52,7 @@ void AAysPlayerController::SetupInputComponent()
 		if (SprintAction)
 		{
 			EnhancedInputComp->BindAction(SprintAction, ETriggerEvent::Started, this, &ThisClass::SprintStart);
-			EnhancedInputComp->BindAction(SprintAction,ETriggerEvent::Completed, this, &ThisClass::SprintEnd);
+			EnhancedInputComp->BindAction(SprintAction, ETriggerEvent::Completed, this, &ThisClass::SprintEnd);
 		}
 	}
 }

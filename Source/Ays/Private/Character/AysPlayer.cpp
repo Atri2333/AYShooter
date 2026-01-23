@@ -4,10 +4,12 @@
 #include "Public/Character/AysPlayer.h"
 
 #include "Camera/CameraComponent.h"
+#include "Component/FPSCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 
 
-AAysPlayer::AAysPlayer()
+AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UFPSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -15,10 +17,10 @@ AAysPlayer::AAysPlayer()
 	TppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
 
 	FppSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("FppSkeletalMesh");
-	FppSkeletalMesh->SetupAttachment(TppSkeletalMesh);
+	FppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
 
 	FppCamera = CreateDefaultSubobject<UCameraComponent>("FppCamera");
-	FppCamera->SetupAttachment(GetCapsuleComponent());
+	FppCamera->SetupAttachment(FppSkeletalMesh, FppCameraSocketName);
 	FppCamera->SetActive(true);
 	// FppCamera本身会受骨骼的Roll旋转影响
 	FppCamera->bUsePawnControlRotation = false;
@@ -32,6 +34,7 @@ void AAysPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	
 }
 
 void AAysPlayer::UpdateFppCameraTransform()
@@ -50,14 +53,15 @@ void AAysPlayer::UpdateFppCameraTransform()
 
 	FppCamera->SetWorldRotation(FinalRot);
 
-	const FVector HeadLocation = FppSkeletalMesh->GetSocketLocation(FppCameraSocketName);
-	FppCamera->SetWorldLocation(HeadLocation);
+	// const FVector HeadLocation = FppSkeletalMesh->GetSocketLocation(FppCameraSocketName);
+	// FppCamera->SetWorldLocation(HeadLocation);
 }
 
 void AAysPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// TODO: UE先执行Actor Tick再执行Skeletal Mesh Update，因此该相机处于上一帧的位置，需要优化
 	UpdateFppCameraTransform();
 }
 
