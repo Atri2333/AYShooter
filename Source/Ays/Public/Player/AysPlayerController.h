@@ -46,10 +46,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> SprintAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> CrouchAction;
+
 	// 输入处理函数
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Jump(const FInputActionValue& Value);
 	void SprintStart(const FInputActionValue& Value);
 	void SprintEnd(const FInputActionValue& Value);
+	void CrouchStart(const FInputActionValue& Value);
+	void CrouchEnd(const FInputActionValue& Value);
 };

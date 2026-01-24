@@ -32,9 +32,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	bool IsInAir() const;
+
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		
 	
 };

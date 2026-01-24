@@ -54,6 +54,11 @@ void AAysPlayerController::SetupInputComponent()
 			EnhancedInputComp->BindAction(SprintAction, ETriggerEvent::Started, this, &ThisClass::SprintStart);
 			EnhancedInputComp->BindAction(SprintAction, ETriggerEvent::Completed, this, &ThisClass::SprintEnd);
 		}
+		if (CrouchAction)
+		{
+			EnhancedInputComp->BindAction(CrouchAction, ETriggerEvent::Started, this, &ThisClass::CrouchStart);
+			EnhancedInputComp->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ThisClass::CrouchEnd);
+		}
 	}
 }
 
@@ -93,4 +98,14 @@ void AAysPlayerController::SprintStart(const FInputActionValue& Value)
 void AAysPlayerController::SprintEnd(const FInputActionValue& Value)
 {
 	LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Locomotion_Sprint);
+}
+
+void AAysPlayerController::CrouchStart(const FInputActionValue& Value)
+{
+	LocomotionStateComponent->TryAddState(FAysGameplayTags::Get().State_Locomotion_Crouch);
+}
+
+void AAysPlayerController::CrouchEnd(const FInputActionValue& Value)
+{
+	LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Locomotion_Crouch);
 }

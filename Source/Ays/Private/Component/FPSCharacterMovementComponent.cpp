@@ -36,12 +36,26 @@ void UFPSCharacterMovementComponent::BeginPlay()
 	InitLocomotionComponent();
 	
 	InitBasicLocomotion();
+
+	
+}
+
+void UFPSCharacterMovementComponent::InterpCrouchAlpha(float DeltaTime)
+{
+	const float TargetAlpha = IsCrouching() ? 1.f : 0.f;
+
+	if (!FMath::IsNearlyEqual(CrouchAlpha, TargetAlpha))
+	{
+		CrouchAlpha = FMath::FInterpTo(CrouchAlpha, TargetAlpha, DeltaTime, CrouchTransitionSpeed);
+	}
 }
 
 void UFPSCharacterMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+                                                   FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	InterpCrouchAlpha(DeltaTime);
 }
 
 void UFPSCharacterMovementComponent::HandleStateChange(const FGameplayTag& Tag, bool bAdded)
@@ -63,6 +77,23 @@ void UFPSCharacterMovementComponent::HandleStateChange(const FGameplayTag& Tag, 
 		else
 		{
 			MaxWalkSpeed = WalkSpeed;
+		}
+	}
+	else if (Tag == Tags.State_Locomotion_Crouch)
+	{
+		if (bAdded)
+		{
+			if (IsValid(CharacterOwner))
+			{
+				CharacterOwner->Crouch();
+			}
+		}
+		else
+		{
+			if (IsValid(CharacterOwner))
+			{
+				CharacterOwner->UnCrouch();
+			}
 		}
 	}
 }

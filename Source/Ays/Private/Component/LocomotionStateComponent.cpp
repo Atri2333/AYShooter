@@ -4,6 +4,8 @@
 #include "Component/LocomotionStateComponent.h"
 
 #include "AysGameplayTags.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 // Sets default values for this component's properties
@@ -14,6 +16,19 @@ ULocomotionStateComponent::ULocomotionStateComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
+}
+
+bool ULocomotionStateComponent::IsInAir() const
+{
+	// 该组件与输入有关，因此Owner为Controller
+	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	const ACharacter* Character = PlayerController->GetCharacter();
+	if (Character && Character->GetCharacterMovement())
+	{
+		// IsFalling() 包含了 Falling (下落) 和 Jumping (跳跃上升) 两种情况
+		return Character->GetCharacterMovement()->IsFalling();
+	}
+	return false;
 }
 
 void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
@@ -30,6 +45,9 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 	}
 	else if (Tag == Tags.State_Locomotion_Crouch)
 	{
+		// 不在空中下蹲
+		if (IsInAir()) return;
+		
 		if (HasState(Tags.State_Locomotion_Sprint))
 		{
 			// 下蹲的时候取消冲刺
@@ -68,6 +86,8 @@ void ULocomotionStateComponent::BeginPlay()
 	// ...
 	
 }
+
+
 
 
 // Called every frame
