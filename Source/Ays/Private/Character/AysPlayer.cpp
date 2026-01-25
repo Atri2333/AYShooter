@@ -3,9 +3,11 @@
 
 #include "Public/Character/AysPlayer.h"
 
+#include "AbilitySystem/AysAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/FPSCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Player/AysPlayerState.h"
 
 
 AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
@@ -28,6 +30,65 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
+}
+
+UAbilitySystemComponent* AAysPlayer::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+// Server only
+// PC and PS valid
+void AAysPlayer::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AbilitySystemComponent == nullptr)
+	{
+		if (AAysPlayerState* PS = GetPlayerState<AAysPlayerState>())
+		{
+			AbilitySystemComponent = Cast<UAysAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+			AttributeSet = PS->AttributeSet;
+			// Server端的InitAbilityActorInfo，OwnerActor为PlayerState，AvatarActor为Character
+			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+		}
+	}
+}
+
+// Client only
+// PS valid
+void AAysPlayer::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	if (AbilitySystemComponent == nullptr)
+	{
+		if (AAysPlayerState* PS = GetPlayerState<AAysPlayerState>())
+		{
+			AbilitySystemComponent = Cast<UAysAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+			AttributeSet = PS->AttributeSet;
+			// Server端的InitAbilityActorInfo，OwnerActor为PlayerState，AvatarActor为Character
+			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+		}
+	}
+	else
+	{
+		AbilitySystemComponent->RefreshAbilityActorInfo();
+	}
+}
+
+
+
+// Client only
+// PC valid
+void AAysPlayer::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	// Needed in case the PC wasn't valid when we Init-ed the ASC.
+	if (AAysPlayerState* PS = GetPlayerState<AAysPlayerState>())
+	{
+		if (PS->GetAbilitySystemComponent())
+			PS->GetAbilitySystemComponent()->RefreshAbilityActorInfo();
+	}
 }
 
 void AAysPlayer::InitVariables()

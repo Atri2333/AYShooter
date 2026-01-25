@@ -18,10 +18,13 @@ public class Ays : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate",
+			"GameplayAbilities", 
+			"GameplayTags", 
+			"GameplayTasks"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTags"});
+		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"Ays"

@@ -3,19 +3,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
 #include "AysPlayer.generated.h"
 
+class UAysAttributeSet;
+class UAysAbilitySystemComponent;
 class UFPSCharacterMovementComponent;
 class UCameraComponent;
 
 UCLASS()
-class AYS_API AAysPlayer : public ACharacter
+class AYS_API AAysPlayer : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	AAysPlayer(const FObjectInitializer& ObjectInitializer);
+	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	virtual void PossessedBy(AController* NewController) override;
+
+	virtual void OnRep_PlayerState() override;
+	virtual void OnRep_Controller() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -59,5 +69,12 @@ public:
 	// 第三人称视角骨骼（完整）
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TppRig")
 	TObjectPtr<USkeletalMeshComponent> TppSkeletalMesh;
-	
+
+	// ASC
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AbilitySystem")
+	TObjectPtr<UAysAbilitySystemComponent> AbilitySystemComponent;
+
+	// AS
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AbilitySystem")
+	TObjectPtr<UAysAttributeSet> AttributeSet;
 };
