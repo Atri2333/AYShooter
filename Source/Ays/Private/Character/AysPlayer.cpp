@@ -53,6 +53,13 @@ void AAysPlayer::PossessedBy(AController* NewController)
 			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 		}
 	}
+
+	// 在BeginPlay调用Init会在Server端导致LocomotionComp为Nullptr（因为需要PC有效才能Retrieve）
+	if (UFPSCharacterMovementComponent* CMC = Cast<UFPSCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		CMC->InitLocomotionComponent();
+		CMC->InitBasicLocomotion();
+	}
 }
 
 // Client only
@@ -88,6 +95,14 @@ void AAysPlayer::OnRep_Controller()
 	{
 		if (PS->GetAbilitySystemComponent())
 			PS->GetAbilitySystemComponent()->RefreshAbilityActorInfo();
+	}
+
+	// 在BeginPlay调用Init“我感觉有可能，但在开发的时候没有”会在Client端导致LocomotionComp为Nullptr（因为需要PC有效才能Retrieve）
+	// 反正放这里准没错
+	if (UFPSCharacterMovementComponent* CMC = Cast<UFPSCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		CMC->InitLocomotionComponent();
+		CMC->InitBasicLocomotion();
 	}
 }
 

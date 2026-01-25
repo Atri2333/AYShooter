@@ -20,9 +20,9 @@ public:
 	void InitLocomotionComponent();
 	void InitBasicLocomotion();
 	virtual void BeginPlay() override;
-	void InterpCrouchAlpha(float DeltaTime);
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
+
+	void InterpCrouchAlpha(float DeltaTime);
 	void HandleStateChange(const FGameplayTag& Tag, bool bAdded);
 
 	UPROPERTY(EditAnywhere)

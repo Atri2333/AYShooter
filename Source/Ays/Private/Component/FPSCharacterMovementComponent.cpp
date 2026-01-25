@@ -7,6 +7,7 @@
 #include "Character/AysPlayer.h"
 #include "Component/LocomotionStateComponent.h"
 #include "GameFramework/Character.h"
+#include "Net/UnrealNetwork.h"
 #include "Player/AysPlayerController.h"
 
 
@@ -15,6 +16,8 @@ void UFPSCharacterMovementComponent::InitLocomotionComponent()
 	AAysPlayer* Player = Cast<AAysPlayer>(CharacterOwner);
 	if (IsValid(Player))
 	{
+		// LocomotionStateComp在PC上，因此需要PC有效才能Retrieve出LocomotionStateComp
+		// 因此需要在PC有效的时候调用本函数
 		AAysPlayerController* PC = Cast<AAysPlayerController>(Player->GetController());
 		if (IsValid(PC))
 		{
@@ -26,17 +29,13 @@ void UFPSCharacterMovementComponent::InitLocomotionComponent()
 void UFPSCharacterMovementComponent::InitBasicLocomotion()
 {
 	MaxWalkSpeed = WalkSpeed;
-	LocomotionStateComponent->OnLocomotionStateChanged.AddUObject(this, &ThisClass::HandleStateChange);
+	if (LocomotionStateComponent != nullptr)
+		LocomotionStateComponent->OnLocomotionStateChanged.AddUObject(this, &ThisClass::HandleStateChange);
 }
 
 void UFPSCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	InitLocomotionComponent();
-	
-	InitBasicLocomotion();
-
 	
 }
 
