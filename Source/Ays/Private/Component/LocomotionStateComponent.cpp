@@ -42,6 +42,11 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 			// 冲刺的时候，取消下蹲
 			RemoveState(Tags.State_Locomotion_Crouch);
 		}
+		if (HasState(Tags.State_Combat_Aiming))
+		{
+			// 冲刺的时候取消瞄准
+			RemoveState(Tags.State_Combat_Aiming);
+		}
 	}
 	else if (Tag == Tags.State_Locomotion_Crouch)
 	{
@@ -54,9 +59,17 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 			RemoveState(Tags.State_Locomotion_Sprint);
 		}
 	}
+	else if (Tag == Tags.State_Combat_Aiming)
+	{
+		if (HasState(Tags.State_Locomotion_Sprint))
+		{
+			// 瞄准的时候取消冲刺
+			RemoveState(Tags.State_Locomotion_Sprint);
+		}
+	}
 
-	
-	if (Tag.MatchesTag(Tags.State_Locomotion))
+	// 对于Action的Tag就不加到TagContainer里了
+	if (Tag.MatchesTag(Tags.State_Locomotion) || Tag.MatchesTag(Tags.State_Combat))
 	{
 		CurrentStates.AddTag(Tag);
 	}

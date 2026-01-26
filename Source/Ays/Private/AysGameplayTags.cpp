@@ -34,6 +34,15 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 		FString("Walk State")
 	);
 
+	Instance.State_Combat = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Combat"),
+		FString("Combat")
+	);
+	Instance.State_Combat_Aiming = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Combat.Aiming"),
+		FString("Aiming State")
+	);
+
 	// Action
 	Instance.Action_Jump = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Action.Jump"),

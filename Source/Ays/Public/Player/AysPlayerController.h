@@ -49,6 +49,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> CrouchAction;
 
+	// Combat相关IMC，例如开火、瞄准等
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> CombatInputMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> AimAction;
+
 	// 输入处理函数
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -57,4 +64,5 @@ protected:
 	void SprintEnd(const FInputActionValue& Value);
 	void CrouchStart(const FInputActionValue& Value);
 	void CrouchEnd(const FInputActionValue& Value);
+	void AimToggle(const FInputActionValue& Value);
 };

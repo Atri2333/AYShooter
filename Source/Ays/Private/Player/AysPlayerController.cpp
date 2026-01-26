@@ -25,6 +25,7 @@ void AAysPlayerController::BeginPlay()
 		{
 			// 绑定IMC
 			Subsystem->AddMappingContext(BasicInputMappingContext, 0);
+			Subsystem->AddMappingContext(CombatInputMappingContext, 0);
 		}
 	}
 }
@@ -58,6 +59,11 @@ void AAysPlayerController::SetupInputComponent()
 		{
 			EnhancedInputComp->BindAction(CrouchAction, ETriggerEvent::Started, this, &ThisClass::CrouchStart);
 			EnhancedInputComp->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ThisClass::CrouchEnd);
+		}
+		
+		if (AimAction)
+		{
+			EnhancedInputComp->BindAction(AimAction, ETriggerEvent::Started, this, &ThisClass::AimToggle);
 		}
 	}
 }
@@ -108,4 +114,16 @@ void AAysPlayerController::CrouchStart(const FInputActionValue& Value)
 void AAysPlayerController::CrouchEnd(const FInputActionValue& Value)
 {
 	LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Locomotion_Crouch);
+}
+
+void AAysPlayerController::AimToggle(const FInputActionValue& Value)
+{
+	if (LocomotionStateComponent->HasState(FAysGameplayTags::Get().State_Combat_Aiming))
+	{
+		LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Combat_Aiming);
+	}
+	else
+	{
+		LocomotionStateComponent->TryAddState(FAysGameplayTags::Get().State_Combat_Aiming);
+	}
 }

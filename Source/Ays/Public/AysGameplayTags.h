@@ -19,6 +19,9 @@ struct FAysGameplayTags
 	FGameplayTag State_Locomotion_Crouch;
 	FGameplayTag State_Locomotion_Slide;
 
+	FGameplayTag State_Combat;
+	FGameplayTag State_Combat_Aiming;
+
 	// 动作 Tags (瞬时的)
 	FGameplayTag Action_Jump;
 	
