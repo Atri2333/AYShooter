@@ -18,6 +18,9 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 	TppSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("TppSkeletalMesh");
 	TppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
 
+	FppPivot = CreateDefaultSubobject<USceneComponent>("FppPivot");
+	FppPivot->SetupAttachment(GetCapsuleComponent());
+
 	FppSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("FppSkeletalMesh");
 	FppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
 
@@ -106,11 +109,22 @@ void AAysPlayer::OnRep_Controller()
 	}
 }
 
-void AAysPlayer::InitVariables()
+void AAysPlayer::ReconstructFppCompHierarchy()
 {
-	if (FppSkeletalMesh)
+	if (IsValid(FppSkeletalMesh) && IsValid(FppCamera))
 	{
-		DefaultFppMeshZ = FppSkeletalMesh->GetRelativeLocation().Z;
+		const FTransform SocketTransform = FppSkeletalMesh->GetSocketTransform(FppCameraSocketName);
+
+		// 调整Pivot 位置和旋转
+		FppPivot->SetWorldLocation(SocketTransform.GetLocation());
+		FppPivot->SetWorldRotation(FRotator(0, GetActorRotation().Yaw, 0));
+
+		// 重新调整Fpp的Hierarchy: FppPivot -> FppSkeletalMesh -> FppCamera
+		FppSkeletalMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		FppSkeletalMesh->AttachToComponent(FppPivot, FAttachmentTransformRules::KeepWorldTransform);
+
+		// 记录初始默认的 Pivot 的 Z
+		DefaultFppPivotZ = FppPivot->GetRelativeLocation().Z;
 	}
 }
 
@@ -118,7 +132,8 @@ void AAysPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitVariables();
+	// 重新调整Fpp的Hierarchy: FppPivot -> FppSkeletalMesh -> FppCamera
+	ReconstructFppCompHierarchy();
 }
 
 void AAysPlayer::UpdateFppCameraTransform()
@@ -128,35 +143,40 @@ void AAysPlayer::UpdateFppCameraTransform()
 	const FRotator BoneWorldRot = FppSkeletalMesh->GetSocketRotation(FppCameraSocketName);
 	const float BoneRoll = BoneWorldRot.Roll;
 
-	const FRotator ControllerRot = GetControlRotation();
-
-	FRotator FinalRot;
+	FRotator FinalRot = FppCamera->GetRelativeRotation();
 	FinalRot.Roll = BoneRoll;
-	FinalRot.Pitch = ControllerRot.Pitch;
-	FinalRot.Yaw = ControllerRot.Yaw;
 
-	FppCamera->SetWorldRotation(FinalRot);
-
-	// const FVector HeadLocation = FppSkeletalMesh->GetSocketLocation(FppCameraSocketName);
-	// FppCamera->SetWorldLocation(HeadLocation);
+	FppCamera->SetRelativeRotation(FinalRot);
 }
 
-void AAysPlayer::InterpFppMeshZ(float DeltaTime)
+void AAysPlayer::InterpFppPivotZ(float DeltaTime)
 {
 	// 1. 如果 Offset 不为 0，就进行插值 (InterpSpeed 越大越快，15.0f 手感比较好)
 	if (!FMath::IsNearlyZero(CurrentCrouchOffset))
 	{
 		CurrentCrouchOffset = FMath::FInterpTo(CurrentCrouchOffset, 0.0f, DeltaTime, CrouchInterpSpeed);
         
-		// 2. 应用给 FppMesh
+		// 2. 应用给 FppPivot
 		if (FppSkeletalMesh)
 		{
-			FVector NewLoc = FppSkeletalMesh->GetRelativeLocation();
+			FVector NewLoc = FppPivot->GetRelativeLocation();
 			// 核心公式：位置 = 默认位置 + 当前补偿
-			NewLoc.Z = DefaultFppMeshZ + CurrentCrouchOffset;
-			FppSkeletalMesh->SetRelativeLocation(NewLoc);
+			NewLoc.Z = DefaultFppPivotZ + CurrentCrouchOffset;
+			FppPivot->SetRelativeLocation(NewLoc);
 		}
 	}
+}
+
+void AAysPlayer::UpdatePivotPitch()
+{
+	if (!IsValid(FppPivot)) return;
+	// 只需要本地控制的角色更新
+	if (!IsLocallyControlled()) return;
+	
+	FRotator PivotRot = FppPivot->GetRelativeRotation();
+	PivotRot.Pitch = GetControlRotation().Pitch;
+	PivotRot.Roll = 0.f;
+	FppPivot->SetRelativeRotation(PivotRot);
 }
 
 void AAysPlayer::Tick(float DeltaTime)
@@ -164,9 +184,14 @@ void AAysPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// TODO: UE先执行Actor Tick再执行Skeletal Mesh Update，因此该相机处于上一帧的位置，需要优化
+	// Head骨骼的Roll影响到FppCamera
 	UpdateFppCameraTransform();
 
-	InterpFppMeshZ(DeltaTime);
+	// 控制器旋转的Pitch影响到FppPivot
+	UpdatePivotPitch();
+
+	// 下蹲插值
+	InterpFppPivotZ(DeltaTime);
 }
 
 void AAysPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
