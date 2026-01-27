@@ -109,11 +109,13 @@ void AAysPlayerController::Jump(const FInputActionValue& Value)
 void AAysPlayerController::SprintStart(const FInputActionValue& Value)
 {
 	LocomotionStateComponent->TryAddState(FAysGameplayTags::Get().State_Locomotion_Sprint);
+	LocomotionStateComponent->SetHoldingSprintKey(true);
 }
 
 void AAysPlayerController::SprintEnd(const FInputActionValue& Value)
 {
 	LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Locomotion_Sprint);
+	LocomotionStateComponent->SetHoldingSprintKey(false);
 }
 
 void AAysPlayerController::CrouchStart(const FInputActionValue& Value)

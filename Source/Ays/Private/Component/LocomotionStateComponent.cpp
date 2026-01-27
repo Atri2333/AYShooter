@@ -34,7 +34,7 @@ bool ULocomotionStateComponent::IsInAir() const
 void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 {
 	// 互斥逻辑
-	FAysGameplayTags Tags = FAysGameplayTags::Get();
+	const FAysGameplayTags& Tags = FAysGameplayTags::Get();
 	if (Tag == Tags.State_Locomotion_Sprint)
 	{
 		if (HasState(Tags.State_Locomotion_Crouch))
@@ -46,6 +46,16 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 		{
 			// 冲刺的时候取消瞄准
 			RemoveState(Tags.State_Combat_Aiming);
+		}
+		if (HasState(Tags.State_Locomotion_LeanLeft))
+		{
+			// 取消左倾
+			RemoveState(Tags.State_Locomotion_LeanLeft);
+		}
+		if (HasState(Tags.State_Locomotion_LeanRight))
+		{
+			// 取消右倾
+			RemoveState(Tags.State_Locomotion_LeanRight);
 		}
 	}
 	else if (Tag == Tags.State_Locomotion_Crouch)
@@ -108,6 +118,11 @@ void ULocomotionStateComponent::RemoveState(const FGameplayTag& Tag)
 	{
 		CurrentStates.RemoveTag(Tag);
 		OnLocomotionStateChanged.Broadcast(Tag, false);
+
+		const bool bPreConditionForSprint = Tag != FAysGameplayTags::Get().State_Locomotion_Sprint;
+		// 尝试重新冲刺
+		if (bPreConditionForSprint)
+			TryReactiveSprint();
 	}
 }
 
@@ -127,7 +142,28 @@ void ULocomotionStateComponent::BeginPlay()
 }
 
 
+void ULocomotionStateComponent::TryReactiveSprint()
+{
+	if (CanReactiveSprint())
+	{
+		const FAysGameplayTags& Tags = FAysGameplayTags::Get();
+		TryAddState(Tags.State_Locomotion_Sprint);
+	}
+}
 
+// Should be Re-modified if more conditions are added, fuck my fool brain for this design
+bool ULocomotionStateComponent::CanReactiveSprint() const
+{
+	if (!bHoldingSprintKey) return false;
+	
+	const FAysGameplayTags& Tags = FAysGameplayTags::Get();
+	
+	if (HasState(Tags.State_Combat_Aiming)) return false;
+	if (HasState(Tags.State_Locomotion_Crouch)) return false;
+	if (HasState(Tags.State_Locomotion_LeanLeft) || HasState(Tags.State_Locomotion_LeanRight)) return false;
+
+	return true;
+}
 
 // Called every frame
 void ULocomotionStateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

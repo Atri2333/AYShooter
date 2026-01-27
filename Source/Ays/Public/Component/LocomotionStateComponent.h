@@ -30,10 +30,20 @@ public:
 
 	bool HasState(const FGameplayTag& Tag) const;
 
+	FORCEINLINE void SetHoldingSprintKey(bool bHolding) { bHoldingSprintKey = bHolding; }
+	FORCEINLINE bool IsHoldingSprintKey() const { return bHoldingSprintKey; }
+
 protected:
 	virtual void BeginPlay() override;
 
 	bool IsInAir() const;
+
+	// 对于冲刺功能，特殊对待，这里记录是否按下了冲刺键
+	bool bHoldingSprintKey = false;
+
+	void TryReactiveSprint();
+
+	bool CanReactiveSprint() const;
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
