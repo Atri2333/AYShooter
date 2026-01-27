@@ -102,6 +102,7 @@ void UFPSAnimInstance::InterpLeanAngle(float DeltaSeconds)
 
 	// 映射为角度，供 ABP 用于驱动 Spine 旋转或曲线
 	LeanAngle = LeanAlpha * MaxLeanAngle;
+	LeanOffset = LeanAlpha * MaxLeanOffset * -1.f;
 }
 
 void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)

@@ -78,6 +78,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Property|Locomotion")
 	float MaxLeanAngle = 12.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Property|Locomotion")
+	float MaxLeanOffset = 75.f;
+
 	// 倾斜插值速度
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Property|Locomotion")
 	float LeanInterpSpeed = 10.f;
@@ -85,6 +88,10 @@ protected:
 	// 由 LeanAlpha 映射出的角度值
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
 	float LeanAngle = 0.f;
+
+	// 由 LeanAlpha 映射出的Offset
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
+	float LeanOffset = 0.f;
 
 	// 插值 LeanAngle
 	void InterpLeanAngle(float DeltaSeconds);
