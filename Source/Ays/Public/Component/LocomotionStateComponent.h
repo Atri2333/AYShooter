@@ -21,6 +21,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	FGameplayTagContainer CurrentStates;
 	
+	
 	FOnLocomotionStateChanged OnLocomotionStateChanged;
 	
 	void TryAddState(const FGameplayTag& Tag);

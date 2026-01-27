@@ -49,6 +49,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> CrouchAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> LeanLeftAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> LeanRightAction;
+
 	// Combat相关IMC，例如开火、瞄准等
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> CombatInputMappingContext;
@@ -64,5 +70,11 @@ protected:
 	void SprintEnd(const FInputActionValue& Value);
 	void CrouchStart(const FInputActionValue& Value);
 	void CrouchEnd(const FInputActionValue& Value);
+	void LeanLeftStart(const FInputActionValue& Value);
+	void LeanLeftEnd(const FInputActionValue& Value);
+	void LeanRightStart(const FInputActionValue& Value);
+	void LeanRightEnd(const FInputActionValue& Value);
 	void AimToggle(const FInputActionValue& Value);
 };
+
+

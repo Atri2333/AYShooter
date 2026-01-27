@@ -18,6 +18,8 @@ struct FAysGameplayTags
 	FGameplayTag State_Locomotion_Sprint;
 	FGameplayTag State_Locomotion_Crouch;
 	FGameplayTag State_Locomotion_Slide;
+	FGameplayTag State_Locomotion_LeanLeft;
+	FGameplayTag State_Locomotion_LeanRight;
 
 	FGameplayTag State_Combat;
 	FGameplayTag State_Combat_Aiming;

@@ -60,6 +60,16 @@ void AAysPlayerController::SetupInputComponent()
 			EnhancedInputComp->BindAction(CrouchAction, ETriggerEvent::Started, this, &ThisClass::CrouchStart);
 			EnhancedInputComp->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ThisClass::CrouchEnd);
 		}
+		if (LeanLeftAction)
+		{
+			EnhancedInputComp->BindAction(LeanLeftAction, ETriggerEvent::Started, this, &ThisClass::LeanLeftStart);
+			EnhancedInputComp->BindAction(LeanLeftAction, ETriggerEvent::Completed, this, &ThisClass::LeanLeftEnd);
+		}
+		if (LeanRightAction)
+		{
+			EnhancedInputComp->BindAction(LeanRightAction, ETriggerEvent::Started, this, &ThisClass::LeanRightStart);
+			EnhancedInputComp->BindAction(LeanRightAction, ETriggerEvent::Completed, this, &ThisClass::LeanRightEnd);
+		}
 		
 		if (AimAction)
 		{
@@ -114,6 +124,26 @@ void AAysPlayerController::CrouchStart(const FInputActionValue& Value)
 void AAysPlayerController::CrouchEnd(const FInputActionValue& Value)
 {
 	LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Locomotion_Crouch);
+}
+
+void AAysPlayerController::LeanLeftStart(const FInputActionValue& Value)
+{
+	LocomotionStateComponent->TryAddState(FAysGameplayTags::Get().State_Locomotion_LeanLeft);
+}
+
+void AAysPlayerController::LeanLeftEnd(const FInputActionValue& Value)
+{
+	LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Locomotion_LeanLeft);
+}
+
+void AAysPlayerController::LeanRightStart(const FInputActionValue& Value)
+{
+	LocomotionStateComponent->TryAddState(FAysGameplayTags::Get().State_Locomotion_LeanRight);
+}
+
+void AAysPlayerController::LeanRightEnd(const FInputActionValue& Value)
+{
+	LocomotionStateComponent->RemoveState(FAysGameplayTags::Get().State_Locomotion_LeanRight);
 }
 
 void AAysPlayerController::AimToggle(const FInputActionValue& Value)

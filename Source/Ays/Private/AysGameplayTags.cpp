@@ -33,6 +33,15 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Locomotion.Walk"),
 		FString("Walk State")
 	);
+	Instance.State_Locomotion_LeanLeft = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Locomotion.LeanLeft"),
+		FString("Lean Left State")
+	);
+	Instance.State_Locomotion_LeanRight = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Locomotion.LeanRight"),
+		FString("Lean Right State")
+	);
+	
 
 	Instance.State_Combat = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Combat"),

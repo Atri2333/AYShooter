@@ -56,6 +56,14 @@ void UFPSAnimInstance::HandleLocomotionStateChanged(const FGameplayTag& Tag, boo
 	{
 		bIsAiming = bAdded;
 	}
+	else if (Tag == Tags.State_Locomotion_LeanLeft)
+	{
+		bIsLeaningLeft = bAdded;
+	}
+	else if (Tag == Tags.State_Locomotion_LeanRight)
+	{
+		bIsLeaningRight = bAdded;
+	}
 }
 
 void UFPSAnimInstance::UpdateCrouchTranslation()
@@ -76,6 +84,26 @@ void UFPSAnimInstance::NativeInitializeAnimation()
 	InitPtr();
 }
 
+void UFPSAnimInstance::InterpLeanAngle(float DeltaSeconds)
+{
+	// 互斥与目标值计算
+	float LeanTarget = 0.f;
+	if (bIsLeaningLeft && !bIsLeaningRight)
+	{
+		LeanTarget = -1.f;
+	}
+	else if (bIsLeaningRight && !bIsLeaningLeft)
+	{
+		LeanTarget = 1.f;
+	}
+	// 平滑插值到目标
+	LeanAlpha = FMath::FInterpTo(LeanAlpha, LeanTarget, DeltaSeconds, LeanInterpSpeed);
+	LeanAlpha = FMath::Clamp(LeanAlpha, -1.f, 1.f);
+
+	// 映射为角度，供 ABP 用于驱动 Spine 旋转或曲线
+	LeanAngle = LeanAlpha * MaxLeanAngle;
+}
+
 void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
@@ -93,4 +121,6 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		const FVector Velocity = CharacterMovementComponent->Velocity;
 		SpeedXY = FVector(Velocity.X, Velocity.Y, 0.f).Size();
 	}
+
+	InterpLeanAngle(DeltaSeconds);
 }

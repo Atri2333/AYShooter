@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "Component/FPSCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Player/AysPlayerState.h"
 
 
@@ -29,6 +30,9 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 	FppCamera->SetActive(true);
 	// FppCamera本身会受骨骼的Roll旋转影响
 	FppCamera->bUsePawnControlRotation = false;
+
+	FppGunSceneComp = CreateDefaultSubobject<USceneComponent>("FppGunSceneComp");
+	FppGunSceneComp->SetupAttachment(FppSkeletalMesh, RightHandBoneName);
 
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationPitch = false;
@@ -125,6 +129,9 @@ void AAysPlayer::ReconstructFppCompHierarchy()
 
 		// 记录初始默认的 Pivot 的 Z
 		DefaultFppPivotZ = FppPivot->GetRelativeLocation().Z;
+
+		const FTransform IKHandGunTransform = FppSkeletalMesh->GetSocketTransform(IKHandGunBoneName);
+		FppGunSceneComp->SetWorldTransform(IKHandGunTransform);
 	}
 }
 
@@ -145,6 +152,8 @@ void AAysPlayer::UpdateFppCameraTransform()
 
 	FRotator FinalRot = FppCamera->GetRelativeRotation();
 	FinalRot.Roll = BoneRoll;
+
+	UE_LOG(LogTemp, Warning, TEXT("AAysPlayer::UpdateFppCameraTransform BoneRoll: %f"), BoneRoll);
 
 	FppCamera->SetRelativeRotation(FinalRot);
 }
@@ -185,7 +194,7 @@ void AAysPlayer::Tick(float DeltaTime)
 
 	// TODO: UE先执行Actor Tick再执行Skeletal Mesh Update，因此该相机处于上一帧的位置，需要优化
 	// Head骨骼的Roll影响到FppCamera
-	UpdateFppCameraTransform();
+	// UpdateFppCameraTransform();
 
 	// 控制器旋转的Pitch影响到FppPivot
 	UpdatePivotPitch();

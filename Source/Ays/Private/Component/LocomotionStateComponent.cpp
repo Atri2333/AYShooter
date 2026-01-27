@@ -67,6 +67,32 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 			RemoveState(Tags.State_Locomotion_Sprint);
 		}
 	}
+	else if (Tag == Tags.State_Locomotion_LeanLeft)
+	{
+		if (HasState(Tags.State_Locomotion_LeanRight))
+		{
+			// 取消右倾
+			RemoveState(Tags.State_Locomotion_LeanRight);
+		}
+		if (HasState(Tags.State_Locomotion_Sprint))
+		{
+			// 探头时一律取消冲刺
+			RemoveState(Tags.State_Locomotion_Sprint);
+		}
+	}
+	else if (Tag == Tags.State_Locomotion_LeanRight)
+	{
+		if (HasState(Tags.State_Locomotion_LeanLeft))
+		{
+			// 取消左倾
+			RemoveState(Tags.State_Locomotion_LeanLeft);
+		}
+		if (HasState(Tags.State_Locomotion_Sprint))
+		{
+			// 探头时一律取消冲刺
+			RemoveState(Tags.State_Locomotion_Sprint);
+		}
+	}
 
 	// 对于Action的Tag就不加到TagContainer里了
 	if (Tag.MatchesTag(Tags.State_Locomotion) || Tag.MatchesTag(Tags.State_Combat))

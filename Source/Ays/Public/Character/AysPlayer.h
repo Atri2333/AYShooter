@@ -54,11 +54,15 @@ public:
 
 	// FppPivot，用于旋转第一人称视角骨骼
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="FPP")
-	USceneComponent* FppPivot;
+	TObjectPtr<USceneComponent> FppPivot;
 	
 	// 第一人称视角相机，绑定到骨骼head上
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> FppCamera;
+
+	// Gun SceneComp
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FPP")
+	TObjectPtr<USceneComponent> FppGunSceneComp;
 
 	// 自定义CMC
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -66,6 +70,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
 	FName FppCameraSocketName = FName("HeadSocket");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+	FName RightHandBoneName = FName("hand_r");
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+	FName IKHandGunBoneName = FName("ik_hand_gun");
 
 	// 第一人称视角骨骼
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FppRig")
