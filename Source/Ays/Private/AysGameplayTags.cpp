@@ -71,4 +71,26 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 		FName("Weapon.Gun.AR"),
 		FString("Assault Rifle Gun Weapon Tag")
 	);
+
+	// Ability
+	Instance.Ability_Weapon = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Weapon"),
+		FString("Weapon Ability Tag")
+	);
+	Instance.Ability_Weapon_Equip = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Weapon.Equip"),
+		FString("Weapon Equip Ability Tag")
+	);
+	Instance.Ability_Weapon_Unequip = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Weapon.Unequip"),
+		FString("Weapon Unequip Ability Tag")
+	);
+	Instance.Ability_Weapon_Reload = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Weapon.Reload"),
+		FString("Weapon Reload Ability Tag")
+	);
+	Instance.Ability_Weapon_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Weapon.Fire"),
+		FString("Weapon Fire Ability Tag")
+	);
 }

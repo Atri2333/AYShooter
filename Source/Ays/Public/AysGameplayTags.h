@@ -23,6 +23,7 @@ struct FAysGameplayTags
 
 	FGameplayTag State_Combat;
 	FGameplayTag State_Combat_Aiming;
+	
 
 	// 动作 Tags (瞬时的)
 	FGameplayTag Action_Jump;
@@ -31,6 +32,13 @@ struct FAysGameplayTags
 	FGameplayTag Weapon;
 	FGameplayTag Weapon_Gun;
 	FGameplayTag Weapon_Gun_AR;
+
+	// Ability Tags
+	FGameplayTag Ability_Weapon;
+	FGameplayTag Ability_Weapon_Equip;
+	FGameplayTag Ability_Weapon_Unequip;
+	FGameplayTag Ability_Weapon_Reload;
+	FGameplayTag Ability_Weapon_Fire;
 	
 private:
 	static FAysGameplayTags Instance;	

@@ -30,6 +30,7 @@ public:
 
 	FORCEINLINE USkeletalMeshComponent* GetFppMesh() const { return FppSkeletalMesh; }
 	FORCEINLINE USceneComponent* GetFppGunSceneComp() const { return FppGunSceneComp; }
+	FORCEINLINE UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
 
 protected:
 	virtual void BeginPlay() override;
