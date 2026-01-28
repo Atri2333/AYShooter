@@ -26,6 +26,11 @@ struct FAysGameplayTags
 
 	// 动作 Tags (瞬时的)
 	FGameplayTag Action_Jump;
+
+	// Weapon Tags
+	FGameplayTag Weapon;
+	FGameplayTag Weapon_Gun;
+	FGameplayTag Weapon_Gun_AR;
 	
 private:
 	static FAysGameplayTags Instance;	

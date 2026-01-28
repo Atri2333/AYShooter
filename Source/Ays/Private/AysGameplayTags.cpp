@@ -57,4 +57,18 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 		FName("Action.Jump"),
 		FString("Jump Action")
 	);
+
+	// Weapon
+	Instance.Weapon = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Weapon"),
+		FString("Weapon Tag")
+	);
+	Instance.Weapon_Gun = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Weapon.Gun"),
+		FString("Gun Weapon Tag")
+	);
+	Instance.Weapon_Gun_AR = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Weapon.Gun.AR"),
+		FString("Assault Rifle Gun Weapon Tag")
+	);
 }

@@ -6,6 +6,7 @@
 #include "AbilitySystem/AysAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/FPSCharacterMovementComponent.h"
+#include "Component/WeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Player/AysPlayerState.h"
@@ -33,6 +34,8 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 
 	FppGunSceneComp = CreateDefaultSubobject<USceneComponent>("FppGunSceneComp");
 	FppGunSceneComp->SetupAttachment(FppSkeletalMesh, RightHandBoneName);
+
+	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
 
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationPitch = false;
@@ -67,6 +70,8 @@ void AAysPlayer::PossessedBy(AController* NewController)
 		CMC->InitLocomotionComponent();
 		CMC->InitBasicLocomotion();
 	}
+
+	WeaponComponent->InitWeaponComponent();
 }
 
 // Client only
@@ -88,6 +93,8 @@ void AAysPlayer::OnRep_PlayerState()
 	{
 		AbilitySystemComponent->RefreshAbilityActorInfo();
 	}
+
+	WeaponComponent->InitWeaponComponent();
 }
 
 
@@ -111,6 +118,7 @@ void AAysPlayer::OnRep_Controller()
 		CMC->InitLocomotionComponent();
 		CMC->InitBasicLocomotion();
 	}
+
 }
 
 void AAysPlayer::ReconstructFppCompHierarchy()

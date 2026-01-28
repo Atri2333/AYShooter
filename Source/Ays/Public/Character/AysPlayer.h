@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "AysPlayer.generated.h"
 
+class UWeaponComponent;
 class UAysAttributeSet;
 class UAysAbilitySystemComponent;
 class UFPSCharacterMovementComponent;
@@ -26,6 +27,9 @@ public:
 
 	virtual void OnRep_PlayerState() override;
 	virtual void OnRep_Controller() override;
+
+	FORCEINLINE USkeletalMeshComponent* GetFppMesh() const { return FppSkeletalMesh; }
+	FORCEINLINE USceneComponent* GetFppGunSceneComp() const { return FppGunSceneComp; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -67,6 +71,10 @@ public:
 	// 自定义CMC
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	TObjectPtr<UFPSCharacterMovementComponent> FPSMovementComponent;
+
+	// 武器组件
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	TObjectPtr<UWeaponComponent> WeaponComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
 	FName FppCameraSocketName = FName("HeadSocket");
