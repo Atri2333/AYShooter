@@ -23,10 +23,13 @@ public:
 	UWeaponComponent();
 
 	void InitWeaponComponent();
+	void EquipInitialWeapon();
 
 	void EquipWeapon(AWeapon* InWeapon);
 
 	void SwitchWeapon(const FGameplayTag& NewWeaponTag);
+
+	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset() const { return WeaponDataAsset; }
 
 protected:
 
@@ -63,4 +66,7 @@ public:
 
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
+
+protected:
+
 };

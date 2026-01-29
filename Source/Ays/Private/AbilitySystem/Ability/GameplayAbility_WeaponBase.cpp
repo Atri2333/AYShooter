@@ -4,6 +4,7 @@
 #include "AbilitySystem/Ability/GameplayAbility_WeaponBase.h"
 
 #include "AbilitySystem/AysAbilitySystemComponent.h"
+#include "Component/WeaponComponent.h"
 
 
 UGameplayAbility_WeaponBase::UGameplayAbility_WeaponBase()
@@ -29,5 +30,6 @@ void UGameplayAbility_WeaponBase::InitCachedRefs(const FGameplayAbilityActorInfo
 	OwnerASC = CastChecked<UAysAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
 	OwnerPlayer = CastChecked<AAysPlayer>(ActorInfo->AvatarActor.Get());
 	OwnerWeaponComp = OwnerPlayer->GetWeaponComponent();
+	WeaponDataAsset = OwnerWeaponComp->GetWeaponDataAsset();
 	checkf(OwnerWeaponComp != nullptr, TEXT("UGameplayAbility_WeaponBase::InitCachedRefs: OwnerWeaponComp is nullptr!"));
 }

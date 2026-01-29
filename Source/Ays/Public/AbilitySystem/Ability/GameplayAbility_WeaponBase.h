@@ -7,6 +7,7 @@
 #include "Character/AysPlayer.h"
 #include "GameplayAbility_WeaponBase.generated.h"
 
+class UWeaponDataAsset;
 /**
  * 
  */
@@ -33,10 +34,16 @@ protected:
 
 	UPROPERTY(Transient, BlueprintReadOnly)
 	TObjectPtr<UWeaponComponent> OwnerWeaponComp;
+
+	UPROPERTY(Transient, BlueprintReadOnly)
+	TObjectPtr<UWeaponDataAsset> WeaponDataAsset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FGameplayTag WeaponAbilityTag;
+
 	
 public:
 
-	
-	
+	FGameplayTag GetWeaponAbilityTag() const { return WeaponAbilityTag; }
 	
 };

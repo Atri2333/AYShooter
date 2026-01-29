@@ -4,10 +4,11 @@
 #include "Component/WeaponComponent.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AysGameplayTags.h"
 #include "AbilitySystem/AysAbilitySystemComponent.h"
 #include "Data/WeaponDataAsset.h"
 #include "Net/UnrealNetwork.h"
-
+#include "AbilitySystem/Ability/GameplayAbility_WeaponBase.h"
 
 UWeaponComponent::UWeaponComponent()
 {
@@ -32,18 +33,31 @@ void UWeaponComponent::InitWeaponComponent()
 	
 	if (WeaponDataAsset)
 	{
-		FWeaponData InitialWeaponData = WeaponDataAsset->GetWeaponDataByTag(DefaultWeaponTag);
-		// 在DataAsset找到了初始武器数据
-		if (InitialWeaponData.WeaponTag == DefaultWeaponTag)
+		// Grant初始武器Ability
+		if (OwnerPlayer->HasAuthority())
 		{
-			OwnedWeaponTags.AddTag(DefaultWeaponTag);
-			AWeapon* InitialWeapon = GetWorld()->SpawnActor<AWeapon>(InitialWeaponData.WeaponClass);
-			if (InitialWeapon)
+			for (const auto& StartupWeaponAbility : WeaponDataAsset->StartupWeaponAbilities)
 			{
-				CurrentWeapon = InitialWeapon;
-				Inventory.Add(InitialWeapon);
-				EquipWeapon(CurrentWeapon);
+				FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(StartupWeaponAbility);
+				OwnerASC->GiveAbility(AbilitySpec);
 			}
+		}		
+	}
+}
+
+// 在Grant Equip Ability后调用, both server and client
+void UWeaponComponent::EquipInitialWeapon()
+{
+	FWeaponData InitialWeaponData = WeaponDataAsset->GetWeaponDataByTag(DefaultWeaponTag);
+	// 在DataAsset找到了初始武器数据
+	if (InitialWeaponData.WeaponTag == DefaultWeaponTag)
+	{
+		OwnedWeaponTags.AddTag(DefaultWeaponTag);
+		AWeapon* InitialWeapon = GetWorld()->SpawnActor<AWeapon>(InitialWeaponData.WeaponClass);
+		if (InitialWeapon)
+		{
+			Inventory.Add(InitialWeapon);
+			EquipWeapon(InitialWeapon);
 		}
 	}
 }
@@ -51,10 +65,15 @@ void UWeaponComponent::InitWeaponComponent()
 void UWeaponComponent::EquipWeapon(AWeapon* InWeapon)
 {
 	if (!IsValid(InWeapon)) return;
-	
-	//TODO: 设置Equip的Gameplay Ability，用来播放动画，设置HUD等
+
+	CurrentWeapon = InWeapon;
+
+	// 激活装备Ability
+	const FGameplayTag& EquipTag = FAysGameplayTags::Get().Ability_Weapon_Equip;
+	OwnerASC->TryActivateAbilitiesByTag(FGameplayTagContainer(EquipTag));
 	
 	// 设置位置
+	// TODO: 玩家角色挂到Fpp，其余挂到Tpp
 	InWeapon->AttachToComponent(OwnerPlayer->GetFppGunSceneComp(),
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 

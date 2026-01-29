@@ -14,7 +14,9 @@ class AYS_API UAysAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 	
-	
+public:
+
+	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
 	
 	
 };

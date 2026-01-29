@@ -7,6 +7,7 @@
 #include "Weapon/Weapon.h"
 #include "WeaponDataAsset.generated.h"
 
+class UGameplayEffect;
 class UGameplayAbility_WeaponBase;
 
 USTRUCT(BlueprintType)
@@ -60,12 +61,19 @@ public:
 
 public:
 
+	UFUNCTION(BlueprintPure)
 	FWeaponData GetWeaponDataByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
 	FName GetWeaponNameByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppEquipMontageByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppUnequipMontageByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppReloadMontageByTag(const FGameplayTag& Weapon) const;
+	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppFireMontageByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppAimedFireMontageByTag(const FGameplayTag& WeaponTag) const;
 	
 	
