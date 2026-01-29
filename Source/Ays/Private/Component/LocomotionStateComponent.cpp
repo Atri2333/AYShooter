@@ -36,7 +36,7 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 	// 互斥逻辑
 	const FAysGameplayTags& Tags = FAysGameplayTags::Get();
 	if (Tag == Tags.State_Locomotion_Sprint)
-	{
+	{		
 		if (HasState(Tags.State_Locomotion_Crouch))
 		{
 			// 冲刺的时候，取消下蹲

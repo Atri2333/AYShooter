@@ -38,12 +38,6 @@ protected:
 	UPROPERTY(Transient, BlueprintReadOnly)
 	TObjectPtr<UWeaponDataAsset> WeaponDataAsset;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FGameplayTag WeaponAbilityTag;
-
-	
 public:
-
-	FGameplayTag GetWeaponAbilityTag() const { return WeaponAbilityTag; }
 	
 };

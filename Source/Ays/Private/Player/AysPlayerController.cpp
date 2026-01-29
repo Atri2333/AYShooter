@@ -3,6 +3,9 @@
 
 #include "Player/AysPlayerController.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "AysAbilityInputID.h"
 #include "AysGameplayTags.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -74,6 +77,11 @@ void AAysPlayerController::SetupInputComponent()
 		if (AimAction)
 		{
 			EnhancedInputComp->BindAction(AimAction, ETriggerEvent::Started, this, &ThisClass::AimToggle);
+		}
+		if (FireAction)
+		{
+			EnhancedInputComp->BindAction(FireAction, ETriggerEvent::Started, this, &ThisClass::FireStart);
+			EnhancedInputComp->BindAction(FireAction, ETriggerEvent::Completed, this, &ThisClass::FireEnd);
 		}
 	}
 }
@@ -157,5 +165,21 @@ void AAysPlayerController::AimToggle(const FInputActionValue& Value)
 	else
 	{
 		LocomotionStateComponent->TryAddState(FAysGameplayTags::Get().State_Combat_Aiming);
+	}
+}
+
+void AAysPlayerController::FireStart(const FInputActionValue& Value)
+{
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter()))
+	{
+		ASC->AbilityLocalInputPressed(static_cast<int32>(EAysAbilityInputID::Fire));
+	}
+}
+
+void AAysPlayerController::FireEnd(const FInputActionValue& Value)
+{
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter()))
+	{
+		ASC->AbilityLocalInputReleased(static_cast<int32>(EAysAbilityInputID::Fire));
 	}
 }

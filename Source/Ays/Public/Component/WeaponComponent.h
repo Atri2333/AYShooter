@@ -47,7 +47,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Data")
 	TObjectPtr<UWeaponDataAsset> WeaponDataAsset;
 
-	
 
 public:	
 

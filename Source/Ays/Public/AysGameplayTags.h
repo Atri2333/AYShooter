@@ -23,6 +23,7 @@ struct FAysGameplayTags
 
 	FGameplayTag State_Combat;
 	FGameplayTag State_Combat_Aiming;
+	FGameplayTag State_Combat_Firing;
 	
 
 	// 动作 Tags (瞬时的)

@@ -62,6 +62,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> AimAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> FireAction;
+
 	// 输入处理函数
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -75,6 +78,9 @@ protected:
 	void LeanRightStart(const FInputActionValue& Value);
 	void LeanRightEnd(const FInputActionValue& Value);
 	void AimToggle(const FInputActionValue& Value);
+	void FireStart(const FInputActionValue& Value);
+	void FireEnd(const FInputActionValue& Value);
+	
 };
 
 

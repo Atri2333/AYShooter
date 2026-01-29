@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AysAbilityInputID.h"
 #include "Engine/DataAsset.h"
 #include "Weapon/Weapon.h"
 #include "WeaponDataAsset.generated.h"
@@ -58,6 +59,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TArray<TSubclassOf<UGameplayAbility_WeaponBase>> StartupWeaponAbilities;
+
+	// 如果GA有对应的InputID，直接通过InputID来Activate
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TMap<FGameplayTag, EAysAbilityInputID> AbilityToInputIDMap;
 
 public:
 

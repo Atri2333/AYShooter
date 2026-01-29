@@ -15,7 +15,8 @@ void UAysAbilitySystemComponent::OnGiveAbility(FGameplayAbilitySpec& AbilitySpec
 	if (!WeaponAbility) return;
 
 	// 如果是装备武器的Ability，则调用WeaponComponent的EquipInitialWeapon函数
-	if (WeaponAbility->GetWeaponAbilityTag() == FAysGameplayTags::Get().Ability_Weapon_Equip)
+	const FGameplayTag WeaponAbilityTag = WeaponAbility->GetAssetTags().First();
+	if (WeaponAbilityTag == FAysGameplayTags::Get().Ability_Weapon_Equip)
 	{
 		AAysPlayer* Player = Cast<AAysPlayer>(GetAvatarActor());
 		if (IsValid(Player))

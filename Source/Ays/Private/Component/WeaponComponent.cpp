@@ -39,6 +39,12 @@ void UWeaponComponent::InitWeaponComponent()
 			for (const auto& StartupWeaponAbility : WeaponDataAsset->StartupWeaponAbilities)
 			{
 				FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(StartupWeaponAbility);
+				FGameplayTag AbilityTag = AbilitySpec.Ability->GetAssetTags().First();
+				if (WeaponDataAsset->AbilityToInputIDMap.Contains(AbilityTag))
+				{
+					const EAysAbilityInputID InputID = WeaponDataAsset->AbilityToInputIDMap[AbilityTag];
+					AbilitySpec.InputID = static_cast<int32>(InputID);
+				}
 				OwnerASC->GiveAbility(AbilitySpec);
 			}
 		}		
