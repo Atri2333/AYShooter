@@ -19,6 +19,8 @@ public:
 	virtual void OnEquipped();
 
 	FORCEINLINE FName GetFppEquipSocketName() const { return FppEquipSocketName; }
+	FORCEINLINE bool CanRepeatAttack() const { return bCanRepeatAttack; }
+	FORCEINLINE float GetFireRate() const { return FireRate; }
 
 protected:
 	
@@ -32,6 +34,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	bool bCanRepeatAttack;
 
+	// 开火速率（每秒发射子弹数）
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	float FireRate;
+	
 	// 武器Mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<USkeletalMeshComponent> WeaponMesh;

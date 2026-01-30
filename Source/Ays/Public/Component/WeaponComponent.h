@@ -30,6 +30,9 @@ public:
 	void SwitchWeapon(const FGameplayTag& NewWeaponTag);
 
 	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset() const { return WeaponDataAsset; }
+	FORCEINLINE AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+
+	FGameplayTag GetCurrentWeaponTag() const;
 
 protected:
 

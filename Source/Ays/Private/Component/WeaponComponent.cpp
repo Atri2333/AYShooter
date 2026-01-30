@@ -40,6 +40,7 @@ void UWeaponComponent::InitWeaponComponent()
 			{
 				FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(StartupWeaponAbility);
 				FGameplayTag AbilityTag = AbilitySpec.Ability->GetAssetTags().First();
+				// 绑定输入ID
 				if (WeaponDataAsset->AbilityToInputIDMap.Contains(AbilityTag))
 				{
 					const EAysAbilityInputID InputID = WeaponDataAsset->AbilityToInputIDMap[AbilityTag];
@@ -91,6 +92,15 @@ void UWeaponComponent::SwitchWeapon(const FGameplayTag& NewWeaponTag)
 	
 }
 
+
+FGameplayTag UWeaponComponent::GetCurrentWeaponTag() const
+{
+	if (IsValid(CurrentWeapon))
+	{
+		return CurrentWeapon->WeaponTag;
+	}
+	return FGameplayTag();
+}
 
 void UWeaponComponent::BeginPlay()
 {

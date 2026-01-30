@@ -36,7 +36,8 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 	// 互斥逻辑
 	const FAysGameplayTags& Tags = FAysGameplayTags::Get();
 	if (Tag == Tags.State_Locomotion_Sprint)
-	{		
+	{
+		if (HasState(Tags.State_Locomotion_BlockSprint)) return;
 		if (HasState(Tags.State_Locomotion_Crouch))
 		{
 			// 冲刺的时候，取消下蹲
@@ -103,6 +104,10 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 			RemoveState(Tags.State_Locomotion_Sprint);
 		}
 	}
+	else if (Tag == Tags.State_Locomotion_BlockSprint)
+	{
+		RemoveState(Tags.State_Locomotion_Sprint);
+	}
 
 	// 对于Action的Tag就不加到TagContainer里了
 	if (Tag.MatchesTag(Tags.State_Locomotion) || Tag.MatchesTag(Tags.State_Combat))
@@ -161,7 +166,7 @@ bool ULocomotionStateComponent::CanReactiveSprint() const
 	if (HasState(Tags.State_Combat_Aiming)) return false;
 	if (HasState(Tags.State_Locomotion_Crouch)) return false;
 	if (HasState(Tags.State_Locomotion_LeanLeft) || HasState(Tags.State_Locomotion_LeanRight)) return false;
-
+	if (HasState(Tags.State_Locomotion_BlockSprint)) return false;
 	return true;
 }
 

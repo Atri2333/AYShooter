@@ -56,6 +56,11 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 		FString("Firing State")
 	);
 
+	Instance.State_Locomotion_BlockSprint = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Locomotion.BlockSprint"),
+		FString("Block Sprint State")
+	);
+
 	// Action
 	Instance.Action_Jump = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Action.Jump"),

@@ -20,10 +20,6 @@ protected:
 
 	void BeginPlay() override;
 
-	// 开火速率（每秒发射子弹数）
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GunWeapon")
-	float FireRate;
-
 	// 弹夹容量
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GunWeapon")
 	int32 MagazineCapacity;

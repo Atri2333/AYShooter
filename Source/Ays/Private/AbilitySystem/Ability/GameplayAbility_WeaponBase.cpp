@@ -32,4 +32,5 @@ void UGameplayAbility_WeaponBase::InitCachedRefs(const FGameplayAbilityActorInfo
 	OwnerWeaponComp = OwnerPlayer->GetWeaponComponent();
 	WeaponDataAsset = OwnerWeaponComp->GetWeaponDataAsset();
 	checkf(OwnerWeaponComp != nullptr, TEXT("UGameplayAbility_WeaponBase::InitCachedRefs: OwnerWeaponComp is nullptr!"));
+	checkf(WeaponDataAsset != nullptr, TEXT("UGameplayAbility_WeaponBase::InitCachedRefs: WeaponDataAsset is nullptr!"));
 }
