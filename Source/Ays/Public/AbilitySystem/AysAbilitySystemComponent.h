@@ -18,5 +18,7 @@ public:
 
 	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
 	
-	
+	UFUNCTION(BlueprintCallable, Category = "GameplayCue", Meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
+	void ExecuteGameplayCueLocal(const FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParameters);
+
 };

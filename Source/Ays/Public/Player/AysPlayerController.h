@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "AysPlayerController.generated.h"
 
+class UAysRecoilComponent;
 class ULocomotionStateComponent;
 struct FInputActionValue;
 class UInputAction;
@@ -27,12 +28,21 @@ public:
 	// Locomotion State Comp
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<ULocomotionStateComponent> LocomotionStateComponent;
+
+	void SetRecoilInput(float PitchInput, float YawInput);
 	
 protected:
 
 	// 基础的IMC，负责基础的人物交互
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> BasicInputMappingContext;
+
+	// View pitch limits (degrees)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Limits")
+	float ViewPitchMin = -60.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Limits")
+	float ViewPitchMax = 60.0f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;
@@ -80,7 +90,7 @@ protected:
 	void AimToggle(const FInputActionValue& Value);
 	void FireStart(const FInputActionValue& Value);
 	void FireEnd(const FInputActionValue& Value);
-	
+
+	UFUNCTION(BlueprintNativeEvent)
+	void ApplyRecoilOnce(float PitchInput, float YawInput);
 };
-
-

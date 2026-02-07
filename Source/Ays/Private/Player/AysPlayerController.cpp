@@ -22,6 +22,13 @@ void AAysPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Fpp上下视角角度限制
+	if (PlayerCameraManager)
+	{
+		PlayerCameraManager->ViewPitchMin = ViewPitchMin;
+		PlayerCameraManager->ViewPitchMax = ViewPitchMax;
+	}
+
 	if (const ULocalPlayer* LP = GetLocalPlayer())
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
@@ -84,6 +91,46 @@ void AAysPlayerController::SetupInputComponent()
 			EnhancedInputComp->BindAction(FireAction, ETriggerEvent::Completed, this, &ThisClass::FireEnd);
 		}
 	}
+}
+
+namespace
+{
+	static void ConvertCameraLocalRecoilToWorldDelta(const FRotator& CameraRot, float PitchInput, float YawInput, float& OutPitch, float& OutYaw)
+	{
+		const FRotator LocalDeltaRot(PitchInput, YawInput, 0.0f);
+		const FQuat WorldQuat = FQuat(CameraRot) * FQuat(LocalDeltaRot);
+		const FRotator WorldRot = WorldQuat.Rotator();
+		const FRotator DeltaRot = (WorldRot - CameraRot).GetNormalized();
+
+		OutPitch = DeltaRot.Pitch;
+		OutYaw = DeltaRot.Yaw;
+	}
+}
+
+void AAysPlayerController::SetRecoilInput(float PitchInput, float YawInput)
+{
+	if (FMath::IsNearlyZero(PitchInput) && FMath::IsNearlyZero(YawInput))
+	{
+		return;
+	}
+
+	const FRotator CameraRot = PlayerCameraManager ? PlayerCameraManager->GetCameraRotation() : GetControlRotation();
+	float OutPitch = 0.0f;
+	float OutYaw = 0.0f;
+	ConvertCameraLocalRecoilToWorldDelta(CameraRot, PitchInput, YawInput, OutPitch, OutYaw);
+
+	ApplyRecoilOnce(OutPitch, OutYaw);
+}
+
+void AAysPlayerController::ApplyRecoilOnce_Implementation(float PitchInput, float YawInput)
+{
+	if (FMath::IsNearlyZero(PitchInput) && FMath::IsNearlyZero(YawInput))
+	{
+		return;
+	}
+
+	AddPitchInput(PitchInput);
+	AddYawInput(YawInput);
 }
 
 void AAysPlayerController::Move(const FInputActionValue& Value)

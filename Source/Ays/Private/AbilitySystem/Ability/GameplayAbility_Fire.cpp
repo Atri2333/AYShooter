@@ -5,6 +5,7 @@
 
 #include "Component/LocomotionStateComponent.h"
 #include "Component/WeaponComponent.h"
+#include "Curves/CurveVector.h"
 #include "Data/WeaponDataAsset.h"
 #include "Player/AysPlayerController.h"
 
@@ -25,6 +26,9 @@ void UGameplayAbility_Fire::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		return;
 	}
 
+	OwnerPC = Cast<AAysPlayerController>(OwnerPlayer->GetController());
+	ShotsFired = 0;
+	
 	FppFireMontage = WeaponDataAsset->GetFppFireMontageByTag(OwnerWeaponComp->GetCurrentWeaponTag());
 	FppAimedFireMontage = WeaponDataAsset->GetFppAimedFireMontageByTag(OwnerWeaponComp->GetCurrentWeaponTag());
 	bIsAutoFiring = OwnerWeaponComp->GetCurrentWeapon()->CanRepeatAttack();
@@ -75,7 +79,9 @@ void UGameplayAbility_Fire::StartAutoFire()
 
 void UGameplayAbility_Fire::DoFireOnce_Implementation()
 {
+	++ShotsFired;
 	
+	ApplyRecoilOnce();
 }
 
 void UGameplayAbility_Fire::ClearAutoFire()
@@ -84,6 +90,19 @@ void UGameplayAbility_Fire::ClearAutoFire()
 	{
 		World->GetTimerManager().ClearTimer(AutoFireTimerHandle);
 	}
+}
+
+void UGameplayAbility_Fire::ApplyRecoilOnce()
+{
+	if (!OwnerPlayer->IsLocallyControlled() || !IsValid(OwnerPC)) return;
+
+	const FGameplayTag& WeaponTag = OwnerWeaponComp->GetCurrentWeaponTag();
+	const FWeaponData WeaponData = WeaponDataAsset->GetWeaponDataByTag(WeaponTag);
+	if (!WeaponData.RecoilPerShotCurve) return;
+
+	const float ShotIndex = FMath::Max(0, ShotsFired - 1);
+	const FVector Recoil = WeaponData.RecoilPerShotCurve->GetVectorValue(ShotIndex);
+	OwnerPC->SetRecoilInput(Recoil.X, Recoil.Y);
 }
 
 void UGameplayAbility_Fire::AddBlockLocomotionTags()

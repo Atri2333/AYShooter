@@ -6,6 +6,7 @@
 #include "AbilitySystem/Ability/GameplayAbility_WeaponBase.h"
 #include "GameplayAbility_Fire.generated.h"
 
+class AAysPlayerController;
 /**
  * 
  */
@@ -36,6 +37,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void ClearAutoFire();
 
+	UFUNCTION(Blueprintable)
+	virtual void ApplyRecoilOnce();
+
 	UFUNCTION(BlueprintCallable)
 	void AddBlockLocomotionTags();
 
@@ -52,10 +56,15 @@ protected:
 	UPROPERTY(Transient, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> FppAimedFireMontage;
 
+	UPROPERTY(Transient, BlueprintReadOnly)
+	TObjectPtr<AAysPlayerController> OwnerPC;
+
 	UPROPERTY(EditDefaultsOnly)
 	FGameplayTagContainer BlockLocomotionTags;
 
 	float FireInterval;
 
 	bool bIsAutoFiring = false;
+
+	int32 ShotsFired = 0;
 };

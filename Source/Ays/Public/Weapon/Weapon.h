@@ -21,6 +21,7 @@ public:
 	FORCEINLINE FName GetFppEquipSocketName() const { return FppEquipSocketName; }
 	FORCEINLINE bool CanRepeatAttack() const { return bCanRepeatAttack; }
 	FORCEINLINE float GetFireRate() const { return FireRate; }
+	FTransform GetSocketTransform(FName SocketName) const;
 
 protected:
 	

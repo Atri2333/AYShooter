@@ -8,8 +8,10 @@
 #include "Weapon/Weapon.h"
 #include "WeaponDataAsset.generated.h"
 
+class UNiagaraSystem;
 class UGameplayEffect;
 class UGameplayAbility_WeaponBase;
+class UCurveVector;
 
 USTRUCT(BlueprintType)
 struct FWeaponData
@@ -41,13 +43,22 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UAnimMontage> FppAimedFireMontage;
 
-	// TODO: Tpp动画待补充
+	// 开火音效和粒子特效
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<USoundBase> FireSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UNiagaraSystem> MuzzleFlashEffect;
+
+	// Per-shot recoil offsets: X=Pitch, Y=Yaw, Z=unused.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
+	TObjectPtr<UCurveVector> RecoilPerShotCurve;
 };
 
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class AYS_API UWeaponDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
@@ -80,6 +91,12 @@ public:
 	UAnimMontage* GetFppFireMontageByTag(const FGameplayTag& WeaponTag) const;
 	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppAimedFireMontageByTag(const FGameplayTag& WeaponTag) const;
-	
+	UFUNCTION(BlueprintPure)
+	USoundBase* GetFireSoundByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
+	UNiagaraSystem* GetMuzzleFlashEffectByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
+	UCurveVector* GetRecoilPerShotCurveByTag(const FGameplayTag& WeaponTag) const;
+
 	
 };

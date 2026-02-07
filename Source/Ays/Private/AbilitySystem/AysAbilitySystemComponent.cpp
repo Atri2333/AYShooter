@@ -3,7 +3,9 @@
 
 #include "AbilitySystem/AysAbilitySystemComponent.h"
 
+#include "AbilitySystemGlobals.h"
 #include "AysGameplayTags.h"
+#include "GameplayCueManager.h"
 #include "AbilitySystem/Ability/GameplayAbility_WeaponBase.h"
 #include "Component/WeaponComponent.h"
 
@@ -24,4 +26,10 @@ void UAysAbilitySystemComponent::OnGiveAbility(FGameplayAbilitySpec& AbilitySpec
 			Player->GetWeaponComponent()->EquipInitialWeapon();
 		}
 	}
+}
+
+void UAysAbilitySystemComponent::ExecuteGameplayCueLocal(const FGameplayTag GameplayCueTag,
+	const FGameplayCueParameters& GameplayCueParameters)
+{
+	UAbilitySystemGlobals::Get().GetGameplayCueManager()->HandleGameplayCue(GetOwner(), GameplayCueTag, EGameplayCueEvent::Type::Executed, GameplayCueParameters);
 }

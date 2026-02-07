@@ -52,3 +52,21 @@ UAnimMontage* UWeaponDataAsset::GetFppAimedFireMontageByTag(const FGameplayTag& 
 	const FWeaponData WeaponData = GetWeaponDataByTag(WeaponTag);
 	return WeaponData.FppAimedFireMontage;
 }
+
+USoundBase* UWeaponDataAsset::GetFireSoundByTag(const FGameplayTag& WeaponTag) const
+{
+	const FWeaponData WeaponData = GetWeaponDataByTag(WeaponTag);
+	return WeaponData.FireSound;
+}
+
+UNiagaraSystem* UWeaponDataAsset::GetMuzzleFlashEffectByTag(const FGameplayTag& WeaponTag) const
+{
+	const FWeaponData WeaponData = GetWeaponDataByTag(WeaponTag);
+	return WeaponData.MuzzleFlashEffect;
+}
+
+UCurveVector* UWeaponDataAsset::GetRecoilPerShotCurveByTag(const FGameplayTag& WeaponTag) const
+{
+	const FWeaponData WeaponData = GetWeaponDataByTag(WeaponTag);
+	return WeaponData.RecoilPerShotCurve;
+}

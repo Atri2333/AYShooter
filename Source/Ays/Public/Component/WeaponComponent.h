@@ -32,7 +32,11 @@ public:
 	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset() const { return WeaponDataAsset; }
 	FORCEINLINE AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 
+	UFUNCTION(BlueprintPure)
 	FGameplayTag GetCurrentWeaponTag() const;
+
+	UFUNCTION(BlueprintPure)
+	FTransform GetCurrentWeaponSocketTransform(const FName& SocketName) const;
 
 protected:
 

@@ -17,6 +17,12 @@ void AWeapon::OnEquipped()
 {
 }
 
+FTransform AWeapon::GetSocketTransform(FName SocketName) const
+{
+	const FTransform SocketTransform = WeaponMesh->GetSocketTransform(SocketName);
+	return SocketTransform;
+}
+
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();

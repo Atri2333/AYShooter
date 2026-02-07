@@ -102,6 +102,14 @@ FGameplayTag UWeaponComponent::GetCurrentWeaponTag() const
 	return FGameplayTag();
 }
 
+FTransform UWeaponComponent::GetCurrentWeaponSocketTransform(const FName& SocketName) const
+{
+	if (!IsValid(CurrentWeapon)) return FTransform::Identity;
+	
+	const FTransform SocketTransform = CurrentWeapon->GetSocketTransform(SocketName);
+	return SocketTransform;
+}
+
 void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
