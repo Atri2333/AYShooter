@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "AysPlayer.generated.h"
 
+class USwayComponent;
 class UWeaponComponent;
 class UAysAttributeSet;
 class UAysAbilitySystemComponent;

@@ -93,6 +93,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
 	float LeanOffset = 0.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
+	FTransform InitialSpineTransform = FTransform::Identity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
+	FTransform CurrentSpineTransform;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
+	FVector SpineDeltaLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
+	FRotator SpineDeltaRotation;
+
 	// 插值 LeanAngle
 	void InterpLeanAngle(float DeltaSeconds);
 };

@@ -6,6 +6,7 @@
 #include "AbilitySystem/AysAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/FPSCharacterMovementComponent.h"
+#include "Component/SwayComponent.h"
 #include "Component/WeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -33,6 +34,7 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 	FppCamera->bUsePawnControlRotation = false;
 
 	FppGunSceneComp = CreateDefaultSubobject<USceneComponent>("FppGunSceneComp");
+	// TODO：这里应该绑到IK_Hand_Gun上，但是IK骨骼不会跟随QE变换，后续会尝试解决
 	FppGunSceneComp->SetupAttachment(FppSkeletalMesh, RightHandBoneName);
 
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
