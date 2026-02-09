@@ -145,6 +145,35 @@ void AAysPlayer::ReconstructFppCompHierarchy()
 	}
 }
 
+bool AAysPlayer::CanJumpInternal_Implementation() const
+{
+	if (Super::CanJumpInternal_Implementation())
+	{
+		return true;
+	}
+
+	// 仅绕过 crouch 限制，仍尊重其它跳跃条件
+	if (bIsCrouched && GetMovementComponent())
+	{
+		UFPSCharacterMovementComponent* FPSCMC = CastChecked<UFPSCharacterMovementComponent>(GetMovementComponent());
+		return FPSCMC->CanAttemptJump();
+	}
+
+	return false;
+}
+
+FCollisionQueryParams AAysPlayer::GetIgnoreCharacterParams() const
+{
+	FCollisionQueryParams Params;
+
+	TArray<AActor*> CharacterChildren;
+	GetAllChildActors(CharacterChildren);
+	Params.AddIgnoredActors(CharacterChildren);
+	Params.AddIgnoredActor(this);
+
+	return Params;
+}
+
 void AAysPlayer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -196,6 +225,10 @@ void AAysPlayer::UpdatePivotPitch()
 	PivotRot.Pitch = GetControlRotation().Pitch;
 	PivotRot.Roll = 0.f;
 	FppPivot->SetRelativeRotation(PivotRot);
+
+	// 全量对齐控制器旋转，抵消胶囊体旋转带来的影响
+	FppPivot->SetWorldRotation(GetControlRotation());
+
 }
 
 void AAysPlayer::Tick(float DeltaTime)

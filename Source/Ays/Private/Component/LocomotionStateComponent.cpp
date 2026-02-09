@@ -108,6 +108,10 @@ void ULocomotionStateComponent::TryAddState(const FGameplayTag& Tag)
 	{
 		RemoveState(Tags.State_Locomotion_Sprint);
 	}
+	else if (Tag == Tags.Action_Jump)
+	{
+		RemoveState(Tags.State_Locomotion_Crouch);
+	}
 
 	// 对于Action的Tag就不加到TagContainer里了
 	if (Tag.MatchesTag(Tags.State_Locomotion) || Tag.MatchesTag(Tags.State_Combat))

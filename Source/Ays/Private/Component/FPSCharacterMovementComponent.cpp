@@ -6,6 +6,7 @@
 #include "AysGameplayTags.h"
 #include "Character/AysPlayer.h"
 #include "Component/LocomotionStateComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/AysPlayerController.h"
@@ -14,13 +15,22 @@
 UFPSCharacterMovementComponent::FSavedMove_FPS::FSavedMove_FPS()
 {
 	Saved_bWantsToSprint = false;
+	Saved_bWantsToSlide = false;
+}
+
+void UFPSCharacterMovementComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	AysPlayer = CastChecked<AAysPlayer>(GetOwner());
+	
 }
 
 bool UFPSCharacterMovementComponent::FSavedMove_FPS::CanCombineWith(const FSavedMovePtr& NewMove,
                                                                     ACharacter* InCharacter, float MaxDelta) const
 {
 	const FSavedMove_FPS* NewFPSMove = static_cast<const FSavedMove_FPS*>(NewMove.Get());
-	if (Saved_bWantsToSprint != NewFPSMove->Saved_bWantsToSprint)
+	if (Saved_bWantsToSprint != NewFPSMove->Saved_bWantsToSprint || Saved_bWantsToSlide != NewFPSMove->Saved_bWantsToSlide)
 	{
 		// Sprint状态不同，不能合并
 		return false;
@@ -34,6 +44,7 @@ void UFPSCharacterMovementComponent::FSavedMove_FPS::Clear()
 	FSavedMove_Character::Clear();
 
 	Saved_bWantsToSprint = false;
+	Saved_bWantsToSlide = false;
 }
 
 uint8 UFPSCharacterMovementComponent::FSavedMove_FPS::GetCompressedFlags() const
@@ -56,7 +67,8 @@ void UFPSCharacterMovementComponent::FSavedMove_FPS::SetMoveFor(ACharacter* Char
 	{
 		if (UFPSCharacterMovementComponent* FPSCMC = Cast<UFPSCharacterMovementComponent>(Character->GetCharacterMovement()))
 		{
-			Saved_bWantsToSprint = FPSCMC->bWantsToSprint;
+			Saved_bWantsToSprint = FPSCMC->Safe_bWantsToSprint;
+			Saved_bWantsToSlide = FPSCMC->Safe_bWantsToSlide;
 		}
 	}
 }
@@ -69,7 +81,8 @@ void UFPSCharacterMovementComponent::FSavedMove_FPS::PrepMoveFor(ACharacter* Cha
 	{
 		if (UFPSCharacterMovementComponent* FPSCMC = Cast<UFPSCharacterMovementComponent>(Character->GetCharacterMovement()))
 		{
-			FPSCMC->bWantsToSprint = Saved_bWantsToSprint;
+			FPSCMC->Safe_bWantsToSprint = Saved_bWantsToSprint;
+			FPSCMC->Safe_bWantsToSlide = Saved_bWantsToSlide;
 		}
 	}
 }
@@ -88,7 +101,7 @@ void UFPSCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 {
 	Super::UpdateFromCompressedFlags(Flags);
 
-	bWantsToSprint = (Flags & FSavedMove_FPS::FLAG_Custom_0) != 0;
+	Safe_bWantsToSprint = (Flags & FSavedMove_FPS::FLAG_Custom_0) != 0;
 }
 
 void UFPSCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation,
@@ -98,7 +111,7 @@ void UFPSCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, const
 
 	if (MovementMode == MOVE_Walking)
 	{
-		if (bWantsToSprint)
+		if (Safe_bWantsToSprint)
 		{
 			MaxWalkSpeed = Sprint_MaxWalkSpeed;
 		}
@@ -119,6 +132,21 @@ FNetworkPredictionData_Client* UFPSCharacterMovementComponent::GetPredictionData
 	}
 
 	return ClientPredictionData;
+}
+
+bool UFPSCharacterMovementComponent::IsMovingOnGround() const
+{
+	return Super::IsMovingOnGround() || IsCustomMovementMode(ECustomMovementMode::CMOVE_Slide);
+}
+
+bool UFPSCharacterMovementComponent::CanCrouchInCurrentState() const
+{
+	return Super::CanCrouchInCurrentState() && IsMovingOnGround();
+}
+
+bool UFPSCharacterMovementComponent::CanAttemptJump() const
+{
+	return Super::CanAttemptJump() || Safe_bWantsToSlide;
 }
 
 void UFPSCharacterMovementComponent::InitLocomotionComponent()
@@ -182,11 +210,11 @@ void UFPSCharacterMovementComponent::HandleStateChange(const FGameplayTag& Tag, 
 		if (bAdded)
 		{
 			// 会通过SetMoveFor同步到SavedMove里传给Server
-			bWantsToSprint = true;
+			Safe_bWantsToSprint = true;
 		}
 		else
 		{
-			bWantsToSprint = false;
+			Safe_bWantsToSprint = false;
 		}
 	}
 	else if (Tag == Tags.State_Locomotion_Crouch)
@@ -206,4 +234,154 @@ void UFPSCharacterMovementComponent::HandleStateChange(const FGameplayTag& Tag, 
 			}
 		}
 	}
+}
+
+void UFPSCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
+{
+	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
+	
+	// 按下下蹲键，判断是否可以Slide
+	if (MovementMode == MOVE_Walking && bWantsToCrouch && !SlidedDuringThisCrouch)
+	{
+		FHitResult PotentialSlideSurface;
+		if (Velocity.Length() > Slide_MinSpeed && GetSlideSurface(PotentialSlideSurface))
+		{
+			EnterSlide();
+		}
+	}
+
+	// 取消下蹲且当前在Slide状态则恢复Walking状态
+	if (!bWantsToCrouch && IsCustomMovementMode(ECustomMovementMode::CMOVE_Slide))
+	{
+		ExitSlide();
+	}
+
+	if (!bWantsToCrouch)
+	{
+		// 重置Slide
+		SlidedDuringThisCrouch = false;
+	}
+}
+
+void UFPSCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations)
+{
+	Super::PhysCustom(deltaTime, Iterations);
+	
+	switch (CustomMovementMode)
+	{
+	case CMOVE_Slide:
+		PhysSlide(deltaTime, Iterations);
+		break;
+	default:
+		UE_LOG(LogTemp, Fatal, TEXT("Invalid Movement Mode"))
+	}
+}
+
+bool UFPSCharacterMovementComponent::IsCustomMovementMode(ECustomMovementMode Mode) const
+{
+	return MovementMode == MOVE_Custom && CustomMovementMode == Mode;
+}
+
+void UFPSCharacterMovementComponent::EnterSlide()
+{
+	Safe_bWantsToSlide = true;
+	Velocity += Velocity.GetSafeNormal2D() * Slide_EnterImpulse;
+	SetMovementMode(MOVE_Custom, ECustomMovementMode::CMOVE_Slide);
+}
+
+void UFPSCharacterMovementComponent::ExitSlide(bool bFall)
+{
+	Safe_bWantsToSlide = false;
+	
+	FQuat NewRotation = FRotationMatrix::MakeFromXZ(UpdatedComponent->GetForwardVector().GetSafeNormal2D(), FVector::UpVector).ToQuat();
+	FHitResult Hit;
+	SafeMoveUpdatedComponent(FVector::ZeroVector, NewRotation, true, Hit);
+	if (!bFall)
+	{
+		// 在地上刹车停止的话就不重复Slide了，在空中的话则可以重复Slide
+		SlidedDuringThisCrouch = true;
+		SetMovementMode(MOVE_Walking);
+	}
+	else
+	{
+		SetMovementMode(MOVE_Falling);
+	}
+}
+
+void UFPSCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations)
+{
+	if (deltaTime < MIN_TICK_TIME)
+	{
+		return;
+	}
+
+	RestorePreAdditiveRootMotionVelocity();
+
+	FHitResult SurfaceHit;
+	bool bFall = !GetSlideSurface(SurfaceHit);
+    if (bFall || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
+    {
+    	ExitSlide(bFall);
+    	StartNewPhysics(deltaTime, Iterations);
+    	return;
+    }
+
+	// Surface Gravity
+	Velocity += Slide_GravityForce * FVector::DownVector * deltaTime;
+
+	// Strafe
+	if (FMath::Abs(FVector::DotProduct(Acceleration.GetSafeNormal(), UpdatedComponent->GetRightVector())) > .5)
+	{
+		Acceleration = Acceleration.ProjectOnTo(UpdatedComponent->GetRightVector());
+	}
+	else
+	{
+		Acceleration = FVector::ZeroVector;
+	}
+
+	// Calc Velocity
+	if(!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+	{
+		CalcVelocity(deltaTime, Slide_Friction, true, GetMaxBrakingDeceleration());
+	}
+	ApplyRootMotionToVelocity(deltaTime);
+
+	// Perform Move
+	Iterations++;
+	bJustTeleported = false;
+	
+	FVector OldLocation = UpdatedComponent->GetComponentLocation();
+	FQuat OldRotation = UpdatedComponent->GetComponentRotation().Quaternion();
+	FHitResult Hit(1.f);
+	FVector Adjusted = Velocity * deltaTime;
+	FVector VelPlaneDir = FVector::VectorPlaneProject(Velocity, SurfaceHit.Normal).GetSafeNormal();
+	FQuat NewRotation = FRotationMatrix::MakeFromXZ(VelPlaneDir, SurfaceHit.Normal).ToQuat();
+	SafeMoveUpdatedComponent(Adjusted, OldRotation, true, Hit);
+
+	if (Hit.Time < 1.f)
+	{
+		HandleImpact(Hit, deltaTime, Adjusted);
+		SlideAlongSurface(Adjusted, (1.f - Hit.Time), Hit.Normal, Hit, true);
+	}
+
+	FHitResult NewSurfaceHit;
+	bFall = !GetSlideSurface(NewSurfaceHit);
+	if (bFall || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
+	{
+		ExitSlide(bFall);
+	}
+	
+	// Update Outgoing Velocity & Acceleration
+	if( !bJustTeleported && !HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+	{
+		Velocity = (UpdatedComponent->GetComponentLocation() - OldLocation) / deltaTime;
+	}
+}
+
+bool UFPSCharacterMovementComponent::GetSlideSurface(FHitResult& Hit) const
+{
+	FVector Start = UpdatedComponent->GetComponentLocation();
+	FVector End = Start + CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 2.f * FVector::DownVector;
+	FName ProfileName = TEXT("BlockAll");
+	return GetWorld()->LineTraceSingleByProfile(Hit, Start, End, ProfileName, AysPlayer->GetIgnoreCharacterParams());
 }

@@ -33,6 +33,8 @@ public:
 	FORCEINLINE USceneComponent* GetFppGunSceneComp() const { return FppGunSceneComp; }
 	FORCEINLINE UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
 
+	FCollisionQueryParams GetIgnoreCharacterParams() const;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -40,6 +42,8 @@ protected:
 	void InterpFppPivotZ(float DeltaTime);
 	void UpdatePivotPitch();
 	void ReconstructFppCompHierarchy();
+
+	virtual bool CanJumpInternal_Implementation() const override;
 
 	// 记录 FPP Pivot 的初始相对位置 (Z轴)
 	float DefaultFppPivotZ = 0.0f;
@@ -69,10 +73,6 @@ public:
 	// Gun SceneComp
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FPP")
 	TObjectPtr<USceneComponent> FppGunSceneComp;
-
-	// 自定义CMC
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	TObjectPtr<UFPSCharacterMovementComponent> FPSMovementComponent;
 
 	// 武器组件
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")

@@ -3,11 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/AysPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "FPSCharacterMovementComponent.generated.h"
 
+class AAysPlayer;
 class ULocomotionStateComponent;
 struct FGameplayTag;
+
+UENUM(BlueprintType)
+enum ECustomMovementMode
+{
+	CMOVE_None			UMETA(Hidden),
+	CMOVE_Slide			UMETA(DisplayName = "Slide"),
+	CMOVE_MAX			UMETA(Hidden),
+};
 /**
  * 
  */
@@ -18,7 +28,10 @@ class AYS_API UFPSCharacterMovementComponent : public UCharacterMovementComponen
 	
 	class FSavedMove_FPS : public FSavedMove_Character
 	{
+		// Flags
 		uint8 Saved_bWantsToSprint:1;
+		// other variables
+		uint8 Saved_bWantsToSlide:1;
 	public:
 		FSavedMove_FPS();
 
@@ -43,7 +56,23 @@ class AYS_API UFPSCharacterMovementComponent : public UCharacterMovementComponen
 		virtual FSavedMovePtr AllocateNewMove() override;
 	};
 
-	bool bWantsToSprint = false;
+	// Movement Safe Variable代表可以在Perform Move和Phys*里正常使用的变量
+	// 这种变量绝对不能是角色属性的引用
+	// 否则在Replay的时候会出问题，因为Replay前后角色属性可能不一样
+	// 一般这种变量要同步到SavedMove里去，这样Server才能收到正确的状态
+	bool Safe_bWantsToSprint = false;
+	bool Safe_bWantsToSlide = false;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AAysPlayer> AysPlayer;
+
+protected:
+
+	virtual void InitializeComponent() override;
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
+	bool IsCustomMovementMode(ECustomMovementMode Mode) const;
+	
 	
 public:
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
@@ -52,6 +81,10 @@ public:
 
 	// 获取我们自己的NetworkPredictionData_Client
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
+
+	virtual bool IsMovingOnGround() const override;
+	virtual bool CanAttemptJump() const override;
+	virtual bool CanCrouchInCurrentState() const override;
 	
 	void InitLocomotionComponent();
 	void InitBasicLocomotion();
@@ -67,6 +100,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	float Walk_MaxWalkSpeed = 300.f;
 
+	UPROPERTY(EditDefaultsOnly) float Slide_MinSpeed=400;
+	UPROPERTY(EditDefaultsOnly) float Slide_EnterImpulse=400;
+	UPROPERTY(EditDefaultsOnly) float Slide_GravityForce=200;
+	UPROPERTY(EditDefaultsOnly) float Slide_Friction=.1;
+
 	UPROPERTY(EditAnywhere, Category = "Deprecared")
 	float CrouchAlpha = 0.f;
 
@@ -75,4 +113,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<ULocomotionStateComponent> LocomotionStateComponent;
+
+private:
+	void EnterSlide();
+	void ExitSlide(bool bFall = false);
+	void PhysSlide(float deltaTime, int32 Iterations);
+	bool GetSlideSurface(FHitResult& Hit) const;
+	
+	bool SlidedDuringThisCrouch;
 };
