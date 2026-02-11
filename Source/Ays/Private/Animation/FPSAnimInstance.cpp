@@ -82,6 +82,7 @@ void UFPSAnimInstance::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	InitPtr();
+	
 }
 
 void UFPSAnimInstance::InterpLeanAngle(float DeltaSeconds)
@@ -124,6 +125,12 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	InterpLeanAngle(DeltaSeconds);
+	
+	if (CharacterMovementComponent)
+	{
+		MovementMode = CharacterMovementComponent->MovementMode;
+		CustomMovementMode = CharacterMovementComponent->CustomMovementMode;
+	}
 }
 
 

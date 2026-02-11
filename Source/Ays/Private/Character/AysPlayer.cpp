@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "Component/FPSCharacterMovementComponent.h"
 #include "Component/SwayComponent.h"
+#include "Component/TraversalComponent.h"
 #include "Component/WeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -18,8 +19,9 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	TppSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("TppSkeletalMesh");
-	TppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
+	// TppSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("TppSkeletalMesh");
+	// TppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
+	// TppSkeletalMesh = GetMesh();
 
 	FppPivot = CreateDefaultSubobject<USceneComponent>("FppPivot");
 	FppPivot->SetupAttachment(GetCapsuleComponent());
@@ -39,9 +41,27 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
 
+	TraversalComponent = CreateDefaultSubobject<UTraversalComponent>("TraversalComponent");
+
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
+}
+
+bool AAysPlayer::TryTraversal()
+{
+	FTraversalCheckInputs Inputs;
+	Inputs.TraceForwardDirection = GetActorForwardVector();
+	Inputs.TraceForwardDistance = 200.f;
+	Inputs.TraceOriginOffset = FVector();
+	Inputs.TraceEndOffset = FVector();
+	Inputs.TraceRadius = 30.f;
+	Inputs.TraceHalfHeight = 60.f;
+
+	bool TraversalCheckFailed = false;
+	bool MontageSelectionFailed = false;
+	TraversalComponent->TryTraversalAction(Inputs, TraversalCheckFailed, MontageSelectionFailed);
+	return !(TraversalCheckFailed || MontageSelectionFailed);
 }
 
 UAbilitySystemComponent* AAysPlayer::GetAbilitySystemComponent() const

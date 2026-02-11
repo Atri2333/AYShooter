@@ -202,7 +202,15 @@ void UFPSCharacterMovementComponent::HandleStateChange(const FGameplayTag& Tag, 
 	{
 		if (IsValid(CharacterOwner))
 		{
-			CharacterOwner->Jump();
+			AAysPlayer* Player = Cast<AAysPlayer>(CharacterOwner);
+			if (IsValid(Player))
+			{
+				if (!Player->TryTraversal())
+				{
+					CharacterOwner->Jump();
+				}
+			}
+			
 		}
 	}
 	else if (Tag == Tags.State_Locomotion_Sprint)

@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "AysPlayer.generated.h"
 
+class UTraversalComponent;
 class USwayComponent;
 class UWeaponComponent;
 class UAysAttributeSet;
@@ -21,6 +22,8 @@ class AYS_API AAysPlayer : public ACharacter, public IAbilitySystemInterface
 
 public:
 	AAysPlayer(const FObjectInitializer& ObjectInitializer);
+
+	bool TryTraversal();
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -77,6 +80,10 @@ public:
 	// 武器组件
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<UWeaponComponent> WeaponComponent;
+
+	// Traversal组件
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Traversal")
+	TObjectPtr<UTraversalComponent> TraversalComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
 	FName FppCameraSocketName = FName("HeadSocket");

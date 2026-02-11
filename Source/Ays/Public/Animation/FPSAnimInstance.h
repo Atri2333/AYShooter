@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "FPSAnimInstance.generated.h"
 
+enum ECustomMovementMode : int;
 struct FGameplayTag;
 class ULocomotionStateComponent;
 class AAysPlayerController;
@@ -57,16 +58,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
 	float SpeedXY;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<AAysPlayer> CharacterOwner;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UFPSCharacterMovementComponent> CharacterMovementComponent;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<ULocomotionStateComponent> LocomotionStateComponent;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<AAysPlayerController> CharacterPlayerController;
 	
 protected:
@@ -101,6 +102,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
 	FVector SpineDeltaLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
+	TEnumAsByte<EMovementMode> MovementMode;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
+	uint8 CustomMovementMode;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property|Locomotion")
 	FRotator SpineDeltaRotation;
