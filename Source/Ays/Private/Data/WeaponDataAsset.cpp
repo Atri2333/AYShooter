@@ -23,6 +23,12 @@ FName UWeaponDataAsset::GetWeaponNameByTag(const FGameplayTag& WeaponTag) const
 	return WeaponData.WeaponName;
 }
 
+UTexture2D* UWeaponDataAsset::GetWeaponTextureByTag(const FGameplayTag& WeaponTag) const
+{
+	const FWeaponData WeaponData = GetWeaponDataByTag(WeaponTag);
+	return WeaponData.WeaponTexture;
+}
+
 UAnimMontage* UWeaponDataAsset::GetFppEquipMontageByTag(const FGameplayTag& WeaponTag) const
 {
 	const FWeaponData WeaponData = GetWeaponDataByTag(WeaponTag);

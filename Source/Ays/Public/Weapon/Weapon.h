@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Component/WeaponComponent.h"
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
@@ -22,6 +23,7 @@ public:
 	FORCEINLINE bool CanRepeatAttack() const { return bCanRepeatAttack; }
 	FORCEINLINE float GetFireRate() const { return FireRate; }
 	FTransform GetSocketTransform(FName SocketName) const;
+	virtual const FWeaponUIData GetUIData() const;
 
 protected:
 	

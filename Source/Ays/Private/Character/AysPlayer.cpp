@@ -4,6 +4,7 @@
 #include "Public/Character/AysPlayer.h"
 
 #include "AbilitySystem/AysAbilitySystemComponent.h"
+#include "AbilitySystem/AysAttributeSet.h"
 #include "Camera/CameraComponent.h"
 #include "Component/FPSCharacterMovementComponent.h"
 #include "Component/SwayComponent.h"
@@ -11,7 +12,9 @@
 #include "Component/WeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Player/AysPlayerController.h"
 #include "Player/AysPlayerState.h"
+#include "UI/AysHUD.h"
 
 
 AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
@@ -69,6 +72,25 @@ UAbilitySystemComponent* AAysPlayer::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+void AAysPlayer::InitAbilityActorInfo()
+{
+	if (AAysPlayerState* PS = GetPlayerState<AAysPlayerState>())
+	{
+		AbilitySystemComponent = Cast<UAysAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+		AttributeSet = PS->AttributeSet;
+		// Server端的InitAbilityActorInfo，OwnerActor为PlayerState，AvatarActor为Character
+		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+	}
+
+	if (AAysPlayerController* AysPlayerController = Cast<AAysPlayerController>(GetController()))
+	{
+		if (AAysHUD* AysHUD = Cast<AAysHUD>(AysPlayerController->GetHUD()))
+		{
+			AysHUD->InitOverlay(AysPlayerController, GetPlayerState<AAysPlayerState>(), this, AbilitySystemComponent, AttributeSet);
+		}
+	}
+}
+
 // Server only
 // PC and PS valid
 void AAysPlayer::PossessedBy(AController* NewController)
@@ -77,13 +99,7 @@ void AAysPlayer::PossessedBy(AController* NewController)
 
 	if (AbilitySystemComponent == nullptr)
 	{
-		if (AAysPlayerState* PS = GetPlayerState<AAysPlayerState>())
-		{
-			AbilitySystemComponent = Cast<UAysAbilitySystemComponent>(PS->GetAbilitySystemComponent());
-			AttributeSet = PS->AttributeSet;
-			// Server端的InitAbilityActorInfo，OwnerActor为PlayerState，AvatarActor为Character
-			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
-		}
+		InitAbilityActorInfo();
 	}
 
 	// 在BeginPlay调用Init会在Server端导致LocomotionComp为Nullptr（因为需要PC有效才能Retrieve）
@@ -103,13 +119,7 @@ void AAysPlayer::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	if (AbilitySystemComponent == nullptr)
 	{
-		if (AAysPlayerState* PS = GetPlayerState<AAysPlayerState>())
-		{
-			AbilitySystemComponent = Cast<UAysAbilitySystemComponent>(PS->GetAbilitySystemComponent());
-			AttributeSet = PS->AttributeSet;
-			// Server端的InitAbilityActorInfo，OwnerActor为PlayerState，AvatarActor为Character
-			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
-		}
+		InitAbilityActorInfo();
 	}
 	else
 	{

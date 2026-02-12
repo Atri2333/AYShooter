@@ -15,6 +15,7 @@ class AYS_API AGunWeapon : public AWeapon
 	GENERATED_BODY()
 public:
 	AGunWeapon();
+	virtual const FWeaponUIData GetUIData() const override;
 
 protected:
 
@@ -25,8 +26,12 @@ protected:
 	int32 MagazineCapacity;
 
 	// 目前弹匣中子弹数量
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GunWeapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GunWeapon")
 	int32 AmmoInMag;
+
+	// 总共剩余的弹药数量
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GunWeapon")
+	int32 TotalAmmo;
 	
 	
 

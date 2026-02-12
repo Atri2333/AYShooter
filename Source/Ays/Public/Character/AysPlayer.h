@@ -26,6 +26,7 @@ public:
 	bool TryTraversal();
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
 
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -109,4 +110,7 @@ public:
 	// AS
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AbilitySystem")
 	TObjectPtr<UAysAttributeSet> AttributeSet;
+
+private:
+	void InitAbilityActorInfo();
 };

@@ -85,11 +85,26 @@ void UWeaponComponent::EquipWeapon(AWeapon* InWeapon)
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	InWeapon->OnEquipped();
+	OnWeaponStatChanged();
 }
 
 void UWeaponComponent::SwitchWeapon(const FGameplayTag& NewWeaponTag)
 {
 	
+}
+
+void UWeaponComponent::OnWeaponStatChanged()
+{
+	// 广播UI数据变化
+	const FWeaponUIData WeaponUIData = GetWeaponUIData();
+	OnWeaponUIDataChanged.Broadcast(WeaponUIData);
+}
+
+const FWeaponUIData UWeaponComponent::GetWeaponUIData() const
+{
+	if (!IsValid(CurrentWeapon)) return FWeaponUIData();
+	const FWeaponUIData WeaponUIData = CurrentWeapon->GetUIData();
+	return WeaponUIData;
 }
 
 

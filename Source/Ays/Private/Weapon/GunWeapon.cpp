@@ -10,9 +10,18 @@ AGunWeapon::AGunWeapon()
 	MagazineMesh->SetupAttachment(WeaponMesh, MagazineSocketName);
 }
 
+const FWeaponUIData AGunWeapon::GetUIData() const
+{
+	FWeaponUIData Data;
+	Data.WeaponTag = WeaponTag;
+	Data.AmmoInClip = AmmoInMag;
+	Data.TotalAmmo = TotalAmmo;
+	return Data;
+}
+
 void AGunWeapon::BeginPlay()
 {
-	Super::BeginPlay();
+	Super::BeginPlay();	
 }
 
 void AGunWeapon::Tick(float DeltaTime)

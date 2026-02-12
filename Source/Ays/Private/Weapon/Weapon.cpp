@@ -23,6 +23,11 @@ FTransform AWeapon::GetSocketTransform(FName SocketName) const
 	return SocketTransform;
 }
 
+const FWeaponUIData AWeapon::GetUIData() const
+{
+	return FWeaponUIData();
+}
+
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();

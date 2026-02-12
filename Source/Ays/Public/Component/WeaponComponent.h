@@ -13,12 +13,31 @@ class UWeaponDataAsset;
 class UAysAbilitySystemComponent;
 class AWeapon;
 
+USTRUCT(BlueprintType)
+struct FWeaponUIData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTag WeaponTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 AmmoInClip;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 TotalAmmo;
+};
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FWeaponUIDataChangedSignature, const FWeaponUIData& /*WeaponUIData*/);
+
 UCLASS(BlueprintType, Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AYS_API UWeaponComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
+
+	FWeaponUIDataChangedSignature OnWeaponUIDataChanged;
 
 	UWeaponComponent();
 
@@ -28,6 +47,9 @@ public:
 	void EquipWeapon(AWeapon* InWeapon);
 
 	void SwitchWeapon(const FGameplayTag& NewWeaponTag);
+
+	void OnWeaponStatChanged();
+	const FWeaponUIData GetWeaponUIData() const;
 
 	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset() const { return WeaponDataAsset; }
 	FORCEINLINE AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }

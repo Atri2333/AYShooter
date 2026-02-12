@@ -26,6 +26,9 @@ struct FWeaponData
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponName;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UTexture2D> WeaponTexture;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UAnimMontage> FppEquipMontage;
@@ -81,6 +84,8 @@ public:
 	FWeaponData GetWeaponDataByTag(const FGameplayTag& WeaponTag) const;
 	UFUNCTION(BlueprintPure)
 	FName GetWeaponNameByTag(const FGameplayTag& WeaponTag) const;
+	UFUNCTION(BlueprintPure)
+	UTexture2D* GetWeaponTextureByTag(const FGameplayTag& WeaponTag) const;
 	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppEquipMontageByTag(const FGameplayTag& WeaponTag) const;
 	UFUNCTION(BlueprintPure)
