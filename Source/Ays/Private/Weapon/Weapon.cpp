@@ -3,6 +3,8 @@
 
 #include "Weapon/Weapon.h"
 
+#include "WeaponUIData.h"
+
 
 AWeapon::AWeapon()
 {
@@ -15,6 +17,7 @@ AWeapon::AWeapon()
 
 void AWeapon::OnEquipped()
 {
+	OnWeaponFiredDelegate.Broadcast(GetUIData());
 }
 
 FTransform AWeapon::GetSocketTransform(FName SocketName) const
@@ -26,6 +29,11 @@ FTransform AWeapon::GetSocketTransform(FName SocketName) const
 const FWeaponUIData AWeapon::GetUIData() const
 {
 	return FWeaponUIData();
+}
+
+void AWeapon::FireLogic()
+{
+	
 }
 
 void AWeapon::BeginPlay()

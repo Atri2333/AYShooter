@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AysGameplayTags.h"
+#include "WeaponUIData.h"
 #include "AbilitySystem/AysAbilitySystemComponent.h"
 #include "Data/WeaponDataAsset.h"
 #include "Net/UnrealNetwork.h"
@@ -74,6 +75,9 @@ void UWeaponComponent::EquipWeapon(AWeapon* InWeapon)
 	if (!IsValid(InWeapon)) return;
 
 	CurrentWeapon = InWeapon;
+	CurrentWeapon->OnWeaponFiredDelegate.Clear();
+	CurrentWeapon->OnWeaponFiredDelegate.AddUObject(this, &UWeaponComponent::OnWeaponStatChanged);
+	
 
 	// 激活装备Ability
 	const FGameplayTag& EquipTag = FAysGameplayTags::Get().Ability_Weapon_Equip;
@@ -85,7 +89,7 @@ void UWeaponComponent::EquipWeapon(AWeapon* InWeapon)
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	InWeapon->OnEquipped();
-	OnWeaponStatChanged();
+		// OnWeaponStatChanged();
 }
 
 void UWeaponComponent::SwitchWeapon(const FGameplayTag& NewWeaponTag)
@@ -93,10 +97,21 @@ void UWeaponComponent::SwitchWeapon(const FGameplayTag& NewWeaponTag)
 	
 }
 
+void UWeaponComponent::FireWeapon()
+{
+	if (!IsValid(CurrentWeapon)) return;
+	CurrentWeapon->FireLogic();
+}
+
 void UWeaponComponent::OnWeaponStatChanged()
 {
 	// 广播UI数据变化
 	const FWeaponUIData WeaponUIData = GetWeaponUIData();
+	OnWeaponUIDataChanged.Broadcast(WeaponUIData);
+}
+
+void UWeaponComponent::OnWeaponStatChanged(const FWeaponUIData& WeaponUIData)
+{
 	OnWeaponUIDataChanged.Broadcast(WeaponUIData);
 }
 
@@ -145,4 +160,5 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UWeaponComponent::OnRep_CurrentWeapon()
 {
+	OnWeaponStatChanged();
 }

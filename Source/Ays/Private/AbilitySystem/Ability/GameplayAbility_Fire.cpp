@@ -77,11 +77,13 @@ void UGameplayAbility_Fire::StartAutoFire()
 	}
 }
 
+// 蓝图里播放了AM和Cue
 void UGameplayAbility_Fire::DoFireOnce_Implementation()
 {
 	++ShotsFired;
 	
 	ApplyRecoilOnce();
+	OwnerWeaponComp->FireWeapon();
 }
 
 void UGameplayAbility_Fire::ClearAutoFire()

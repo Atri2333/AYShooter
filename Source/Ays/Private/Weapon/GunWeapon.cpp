@@ -3,11 +3,22 @@
 
 #include "Weapon/GunWeapon.h"
 
+#include "WeaponUIData.h"
+#include "Net/UnrealNetwork.h"
+
 
 AGunWeapon::AGunWeapon()
 {
 	MagazineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MagazineMesh"));
 	MagazineMesh->SetupAttachment(WeaponMesh, MagazineSocketName);
+}
+
+void AGunWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(AGunWeapon, AmmoInMag, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(AGunWeapon, TotalAmmo, COND_None, REPNOTIFY_Always);
 }
 
 const FWeaponUIData AGunWeapon::GetUIData() const
@@ -19,6 +30,14 @@ const FWeaponUIData AGunWeapon::GetUIData() const
 	return Data;
 }
 
+void AGunWeapon::FireLogic()
+{
+	Super::FireLogic();
+
+	--AmmoInMag;
+	OnWeaponFiredDelegate.Broadcast(GetUIData());
+}
+
 void AGunWeapon::BeginPlay()
 {
 	Super::BeginPlay();	
@@ -27,4 +46,14 @@ void AGunWeapon::BeginPlay()
 void AGunWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AGunWeapon::OnRep_AmmoInMag(const int32 OldAmmoInMag)
+{
+	OnWeaponFiredDelegate.Broadcast(GetUIData());
+}
+
+void AGunWeapon::OnRep_TotalAmmo(const int32 OldTotalAmmo)
+{
+	OnWeaponFiredDelegate.Broadcast(GetUIData());
 }

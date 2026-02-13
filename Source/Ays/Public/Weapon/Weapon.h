@@ -8,6 +8,8 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredSignature, const FWeaponUIData&);
+
 UCLASS()
 class AYS_API AWeapon : public AActor
 {
@@ -24,6 +26,9 @@ public:
 	FORCEINLINE float GetFireRate() const { return FireRate; }
 	FTransform GetSocketTransform(FName SocketName) const;
 	virtual const FWeaponUIData GetUIData() const;
+	virtual void FireLogic();
+
+	FOnWeaponFiredSignature OnWeaponFiredDelegate;
 
 protected:
 	

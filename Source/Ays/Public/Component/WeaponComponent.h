@@ -9,24 +9,10 @@
 #include "WeaponComponent.generated.h"
 
 
+struct FWeaponUIData;
 class UWeaponDataAsset;
 class UAysAbilitySystemComponent;
 class AWeapon;
-
-USTRUCT(BlueprintType)
-struct FWeaponUIData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FGameplayTag WeaponTag;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 AmmoInClip;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 TotalAmmo;
-};
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FWeaponUIDataChangedSignature, const FWeaponUIData& /*WeaponUIData*/);
 
@@ -48,7 +34,10 @@ public:
 
 	void SwitchWeapon(const FGameplayTag& NewWeaponTag);
 
+	void FireWeapon();
+
 	void OnWeaponStatChanged();
+	void OnWeaponStatChanged(const FWeaponUIData& WeaponUIData);
 	const FWeaponUIData GetWeaponUIData() const;
 
 	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset() const { return WeaponDataAsset; }
