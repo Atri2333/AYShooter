@@ -38,6 +38,25 @@ void AGunWeapon::FireLogic()
 	OnWeaponFiredDelegate.Broadcast(GetUIData());
 }
 
+bool AGunWeapon::CanFire() const
+{
+	return AmmoInMag > 0;
+}
+
+bool AGunWeapon::CanReload() const
+{
+	return AmmoInMag < MagazineCapacity && TotalAmmo > 0;
+}
+
+void AGunWeapon::ApplyReloadLogic()
+{
+	const int32 AmmoNeeded = MagazineCapacity - AmmoInMag;
+	const int32 AmmoToReload = FMath::Min(AmmoNeeded, TotalAmmo);
+	AmmoInMag += AmmoToReload;
+	TotalAmmo -= AmmoToReload;
+	OnWeaponFiredDelegate.Broadcast(GetUIData());
+}
+
 void AGunWeapon::BeginPlay()
 {
 	Super::BeginPlay();	

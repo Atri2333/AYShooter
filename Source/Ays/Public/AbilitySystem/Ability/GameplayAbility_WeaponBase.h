@@ -20,6 +20,11 @@ public:
 	UGameplayAbility_WeaponBase();
 
 protected:
+	UFUNCTION(BlueprintCallable)
+	void AddBlockLocomotionTags();
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveBlockLocomotionTags();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
@@ -37,6 +42,9 @@ protected:
 
 	UPROPERTY(Transient, BlueprintReadOnly)
 	TObjectPtr<UWeaponDataAsset> WeaponDataAsset;
+	
+	UPROPERTY(EditDefaultsOnly)
+	FGameplayTagContainer BlockLocomotionTags;
 
 public:
 	

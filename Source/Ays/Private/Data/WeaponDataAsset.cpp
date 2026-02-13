@@ -47,6 +47,18 @@ UAnimMontage* UWeaponDataAsset::GetFppReloadMontageByTag(const FGameplayTag& Wea
 	return WeaponData.FppReloadMontage;
 }
 
+UAnimMontage* UWeaponDataAsset::GetTppReloadMontageByTag(const FGameplayTag& Weapon) const
+{
+	const FWeaponData WeaponData = GetWeaponDataByTag(Weapon);
+	return WeaponData.TppReloadMontage;
+}
+
+UAnimMontage* UWeaponDataAsset::GetWeaponReloadMontageByTag(const FGameplayTag& Weapon) const
+{
+	const FWeaponData WeaponData = GetWeaponDataByTag(Weapon);
+	return WeaponData.WeaponReloadMontage;
+}
+
 UAnimMontage* UWeaponDataAsset::GetFppFireMontageByTag(const FGameplayTag& WeaponTag) const
 {
 	const FWeaponData WeaponData = GetWeaponDataByTag(WeaponTag);

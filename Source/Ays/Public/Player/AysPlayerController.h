@@ -74,6 +74,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> FireAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> ReloadAction;
 
 	// 输入处理函数
 	void Move(const FInputActionValue& Value);
@@ -90,6 +93,7 @@ protected:
 	void AimToggle(const FInputActionValue& Value);
 	void FireStart(const FInputActionValue& Value);
 	void FireEnd(const FInputActionValue& Value);
+	void Reload(const FInputActionValue& Value);
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ApplyRecoilOnce(float PitchInput, float YawInput);

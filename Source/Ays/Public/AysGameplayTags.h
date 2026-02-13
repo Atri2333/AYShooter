@@ -43,6 +43,10 @@ struct FAysGameplayTags
 	FGameplayTag Ability_Weapon_Reload;
 	FGameplayTag Ability_Weapon_Fire;
 	
+	// Gameplay Event Tags
+	FGameplayTag Event_Weapon_ReloadConfirm;
+	FGameplayTag Event_Weapon_ReloadFinished;
+	
 private:
 	static FAysGameplayTags Instance;	
 };

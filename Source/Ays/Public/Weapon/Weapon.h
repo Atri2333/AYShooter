@@ -27,6 +27,9 @@ public:
 	FTransform GetSocketTransform(FName SocketName) const;
 	virtual const FWeaponUIData GetUIData() const;
 	virtual void FireLogic();
+	virtual bool CanFire() const;
+	virtual bool CanReload() const;
+	virtual void ApplyReloadLogic();
 
 	FOnWeaponFiredSignature OnWeaponFiredDelegate;
 

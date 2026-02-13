@@ -18,6 +18,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual const FWeaponUIData GetUIData() const override;
 	virtual void FireLogic() override;
+	virtual bool CanFire() const override;
+	virtual bool CanReload() const override;
+	virtual void ApplyReloadLogic() override;
 
 protected:
 

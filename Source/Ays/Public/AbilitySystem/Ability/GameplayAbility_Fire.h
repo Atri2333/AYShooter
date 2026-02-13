@@ -39,12 +39,9 @@ protected:
 
 	UFUNCTION(Blueprintable)
 	virtual void ApplyRecoilOnce();
-
-	UFUNCTION(BlueprintCallable)
-	void AddBlockLocomotionTags();
-
-	UFUNCTION(BlueprintCallable)
-	void RemoveBlockLocomotionTags();
+	
+	UFUNCTION(BlueprintPure)
+	bool CanFire();
 
 protected:
 
@@ -59,8 +56,7 @@ protected:
 	UPROPERTY(Transient, BlueprintReadOnly)
 	TObjectPtr<AAysPlayerController> OwnerPC;
 
-	UPROPERTY(EditDefaultsOnly)
-	FGameplayTagContainer BlockLocomotionTags;
+	
 
 	float FireInterval;
 

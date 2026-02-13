@@ -102,4 +102,14 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 		FName("Ability.Weapon.Fire"),
 		FString("Weapon Fire Ability Tag")
 	);
+	
+	// Gameplay Event
+	Instance.Event_Weapon_ReloadConfirm = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Event.Weapon.ReloadConfirm"),
+		FString("Weapon Reload Confirm Event Tag")
+	);
+	Instance.Event_Weapon_ReloadFinished = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Event.Weapon.ReloadFinished"),
+		FString("Weapon Reload Finished Event Tag, used in AM Notify")
+	);
 }

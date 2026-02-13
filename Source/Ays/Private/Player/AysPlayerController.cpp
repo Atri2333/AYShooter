@@ -90,6 +90,10 @@ void AAysPlayerController::SetupInputComponent()
 			EnhancedInputComp->BindAction(FireAction, ETriggerEvent::Started, this, &ThisClass::FireStart);
 			EnhancedInputComp->BindAction(FireAction, ETriggerEvent::Completed, this, &ThisClass::FireEnd);
 		}
+		if (ReloadAction)
+		{
+			EnhancedInputComp->BindAction(ReloadAction, ETriggerEvent::Started, this, &ThisClass::Reload);
+		}
 	}
 }
 
@@ -228,5 +232,13 @@ void AAysPlayerController::FireEnd(const FInputActionValue& Value)
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter()))
 	{
 		ASC->AbilityLocalInputReleased(static_cast<int32>(EAysAbilityInputID::Fire));
+	}
+}
+
+void AAysPlayerController::Reload(const FInputActionValue& Value)
+{
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter()))
+	{
+		ASC->AbilityLocalInputPressed(static_cast<int32>(EAysAbilityInputID::Reload));
 	}
 }

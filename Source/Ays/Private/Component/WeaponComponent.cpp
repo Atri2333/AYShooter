@@ -61,11 +61,14 @@ void UWeaponComponent::EquipInitialWeapon()
 	if (InitialWeaponData.WeaponTag == DefaultWeaponTag)
 	{
 		OwnedWeaponTags.AddTag(DefaultWeaponTag);
-		AWeapon* InitialWeapon = GetWorld()->SpawnActor<AWeapon>(InitialWeaponData.WeaponClass);
-		if (InitialWeapon)
+		if (OwnerPlayer->HasAuthority())
 		{
-			Inventory.Add(InitialWeapon);
-			EquipWeapon(InitialWeapon);
+			AWeapon* InitialWeapon = GetWorld()->SpawnActor<AWeapon>(InitialWeaponData.WeaponClass);
+			if (InitialWeapon)
+			{
+				Inventory.Add(InitialWeapon);
+				EquipWeapon(InitialWeapon);
+			}
 		}
 	}
 }
@@ -101,6 +104,24 @@ void UWeaponComponent::FireWeapon()
 {
 	if (!IsValid(CurrentWeapon)) return;
 	CurrentWeapon->FireLogic();
+}
+
+bool UWeaponComponent::CanFireWeapon() const
+{
+	if (!IsValid(CurrentWeapon)) return false;
+	return CurrentWeapon->CanFire();
+}
+
+bool UWeaponComponent::CanReloadWeapon() const
+{
+	if (!IsValid(CurrentWeapon)) return false;
+	return CurrentWeapon->CanReload();
+}
+
+void UWeaponComponent::ApplyReloadLogic()
+{
+	if (!IsValid(CurrentWeapon)) return;
+	CurrentWeapon->ApplyReloadLogic();
 }
 
 void UWeaponComponent::OnWeaponStatChanged()
@@ -160,5 +181,6 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UWeaponComponent::OnRep_CurrentWeapon()
 {
+	EquipWeapon(CurrentWeapon);
 	OnWeaponStatChanged();
 }

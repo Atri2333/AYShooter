@@ -20,7 +20,7 @@ void UGameplayAbility_Fire::ActivateAbility(const FGameplayAbilitySpecHandle Han
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	if (OwnerWeaponComp->GetCurrentWeapon() == nullptr)
+	if (OwnerWeaponComp->GetCurrentWeapon() == nullptr || !CanFire())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -41,6 +41,7 @@ void UGameplayAbility_Fire::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	{
 		DoFireOnce();
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 	
 	
@@ -80,8 +81,24 @@ void UGameplayAbility_Fire::StartAutoFire()
 // 蓝图里播放了AM和Cue
 void UGameplayAbility_Fire::DoFireOnce_Implementation()
 {
-	++ShotsFired;
+	// TODO: 客户端根据本地的弹药量判断是否EndAbility，但事实上应该根据服务器的弹药量来判断，可能会有些不同步，后续可以优化
+	if (!CanFire())
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
 	
+	// 服务器权威校验
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		if (!CanFire())
+		{
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+			return;
+		}
+	}
+	
+	++ShotsFired;
 	ApplyRecoilOnce();
 	OwnerWeaponComp->FireWeapon();
 }
@@ -107,22 +124,7 @@ void UGameplayAbility_Fire::ApplyRecoilOnce()
 	OwnerPC->SetRecoilInput(Recoil.X, Recoil.Y);
 }
 
-void UGameplayAbility_Fire::AddBlockLocomotionTags()
+bool UGameplayAbility_Fire::CanFire()
 {
-	AAysPlayerController* PC = Cast<AAysPlayerController>(OwnerPlayer->GetController());
-	if (!IsValid(PC) || PC->LocomotionStateComponent == nullptr) return;
-	for (const FGameplayTag& Tag: BlockLocomotionTags)
-	{
-		PC->LocomotionStateComponent->TryAddState(Tag);
-	}
-}
-
-void UGameplayAbility_Fire::RemoveBlockLocomotionTags()
-{
-	AAysPlayerController* PC = Cast<AAysPlayerController>(OwnerPlayer->GetController());
-	if (!IsValid(PC) || PC->LocomotionStateComponent == nullptr) return;
-	for (const FGameplayTag& Tag: BlockLocomotionTags)
-	{
-		PC->LocomotionStateComponent->RemoveState(Tag);
-	}
+	return OwnerWeaponComp->CanFireWeapon();
 }

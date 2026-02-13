@@ -10,6 +10,8 @@ AWeapon::AWeapon()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	
+	bReplicates = true;
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
@@ -32,6 +34,21 @@ const FWeaponUIData AWeapon::GetUIData() const
 }
 
 void AWeapon::FireLogic()
+{
+	
+}
+
+bool AWeapon::CanFire() const
+{
+	return true;
+}
+
+bool AWeapon::CanReload() const
+{
+	return false;
+}
+
+void AWeapon::ApplyReloadLogic()
 {
 	
 }

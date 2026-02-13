@@ -45,6 +45,12 @@ struct FWeaponData
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UAnimMontage> FppAimedFireMontage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UAnimMontage> TppReloadMontage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UAnimMontage> WeaponReloadMontage;
 
 	// 开火音效和粒子特效
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
@@ -92,6 +98,10 @@ public:
 	UAnimMontage* GetFppUnequipMontageByTag(const FGameplayTag& WeaponTag) const;
 	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppReloadMontageByTag(const FGameplayTag& Weapon) const;
+	UFUNCTION(BlueprintPure)
+	UAnimMontage* GetTppReloadMontageByTag(const FGameplayTag& Weapon) const;
+	UFUNCTION(BlueprintPure)
+	UAnimMontage* GetWeaponReloadMontageByTag(const FGameplayTag& Weapon) const;
 	UFUNCTION(BlueprintPure)
 	UAnimMontage* GetFppFireMontageByTag(const FGameplayTag& WeaponTag) const;
 	UFUNCTION(BlueprintPure)

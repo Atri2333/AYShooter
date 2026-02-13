@@ -35,6 +35,10 @@ public:
 	void SwitchWeapon(const FGameplayTag& NewWeaponTag);
 
 	void FireWeapon();
+	
+	bool CanFireWeapon() const;
+	bool CanReloadWeapon() const;
+	void ApplyReloadLogic();
 
 	void OnWeaponStatChanged();
 	void OnWeaponStatChanged(const FWeaponUIData& WeaponUIData);
