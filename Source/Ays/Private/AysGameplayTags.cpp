@@ -102,6 +102,10 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 		FName("Ability.Weapon.Fire"),
 		FString("Weapon Fire Ability Tag")
 	);
+	Instance.Ability_Dash = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Dash"),
+		FString("Dash Ability Tag")
+	);
 	
 	// Gameplay Event
 	Instance.Event_Weapon_ReloadConfirm = UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -111,5 +115,15 @@ void FAysGameplayTags::InitializeNativeGameplayTags()
 	Instance.Event_Weapon_ReloadFinished = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Event.Weapon.ReloadFinished"),
 		FString("Weapon Reload Finished Event Tag, used in AM Notify")
+	);
+	
+	// Cooldown
+	Instance.Cooldown = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Cooldown"),
+		FString("Cooldown Tag")
+	);
+	Instance.Cooldown_Dash = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Cooldown.Dash"),
+		FString("Dash Cooldown Tag")
 	);
 }

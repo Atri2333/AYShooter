@@ -362,8 +362,6 @@ void UFPSCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations
 	FQuat OldRotation = UpdatedComponent->GetComponentRotation().Quaternion();
 	FHitResult Hit(1.f);
 	FVector Adjusted = Velocity * deltaTime;
-	FVector VelPlaneDir = FVector::VectorPlaneProject(Velocity, SurfaceHit.Normal).GetSafeNormal();
-	FQuat NewRotation = FRotationMatrix::MakeFromXZ(VelPlaneDir, SurfaceHit.Normal).ToQuat();
 	SafeMoveUpdatedComponent(Adjusted, OldRotation, true, Hit);
 
 	if (Hit.Time < 1.f)
@@ -392,4 +390,14 @@ bool UFPSCharacterMovementComponent::GetSlideSurface(FHitResult& Hit) const
 	FVector End = Start + CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 2.f * FVector::DownVector;
 	FName ProfileName = TEXT("BlockAll");
 	return GetWorld()->LineTraceSingleByProfile(Hit, Start, End, ProfileName, AysPlayer->GetIgnoreCharacterParams());
+}
+
+void UFPSCharacterMovementComponent::PerformDash()
+{
+	const FVector DashDir = (Acceleration.IsNearlyZero() ? UpdatedComponent->GetForwardVector() : Acceleration).GetSafeNormal2D();
+	
+	Velocity = DashImpulse * (DashDir + FVector::UpVector * .2f);
+	
+	
+	SetMovementMode(MOVE_Falling);
 }

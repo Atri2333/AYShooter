@@ -94,6 +94,10 @@ void AAysPlayerController::SetupInputComponent()
 		{
 			EnhancedInputComp->BindAction(ReloadAction, ETriggerEvent::Started, this, &ThisClass::Reload);
 		}
+		if (DashAction)
+		{
+			EnhancedInputComp->BindAction(DashAction, ETriggerEvent::Started, this, &ThisClass::Dash);
+		}
 	}
 }
 
@@ -240,5 +244,13 @@ void AAysPlayerController::Reload(const FInputActionValue& Value)
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter()))
 	{
 		ASC->AbilityLocalInputPressed(static_cast<int32>(EAysAbilityInputID::Reload));
+	}
+}
+
+void AAysPlayerController::Dash(const FInputActionValue& Value)
+{
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter()))
+	{
+		ASC->AbilityLocalInputPressed(static_cast<int32>(EAysAbilityInputID::Dash));
 	}
 }

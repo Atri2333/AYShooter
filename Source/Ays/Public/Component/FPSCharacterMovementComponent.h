@@ -104,6 +104,8 @@ public:
 	UPROPERTY(EditDefaultsOnly) float Slide_EnterImpulse=400;
 	UPROPERTY(EditDefaultsOnly) float Slide_GravityForce=200;
 	UPROPERTY(EditDefaultsOnly) float Slide_Friction=.1;
+	
+	UPROPERTY(EditDefaultsOnly) float DashImpulse = 600.f;
 
 	UPROPERTY(EditAnywhere, Category = "Deprecared")
 	float CrouchAlpha = 0.f;
@@ -114,6 +116,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<ULocomotionStateComponent> LocomotionStateComponent;
 
+	// Slide
 private:
 	void EnterSlide();
 	void ExitSlide(bool bFall = false);
@@ -121,4 +124,8 @@ private:
 	bool GetSlideSurface(FHitResult& Hit) const;
 	
 	bool SlidedDuringThisCrouch;
+	
+	// Dash
+public:
+	void PerformDash();
 };

@@ -42,10 +42,15 @@ struct FAysGameplayTags
 	FGameplayTag Ability_Weapon_Unequip;
 	FGameplayTag Ability_Weapon_Reload;
 	FGameplayTag Ability_Weapon_Fire;
+	FGameplayTag Ability_Dash;
 	
 	// Gameplay Event Tags
 	FGameplayTag Event_Weapon_ReloadConfirm;
 	FGameplayTag Event_Weapon_ReloadFinished;
+	
+	// Cooldown
+	FGameplayTag Cooldown;
+	FGameplayTag Cooldown_Dash;
 	
 private:
 	static FAysGameplayTags Instance;	

@@ -91,6 +91,25 @@ void AAysPlayer::InitAbilityActorInfo()
 	}
 }
 
+void AAysPlayer::GrantInitialAbilities()
+{
+	if (HasAuthority())
+	{
+		for (const auto& Ability : CharacterAbilities)
+		{
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability);
+			FGameplayTag AbilityTag = AbilitySpec.Ability->GetAssetTags().First();
+			// 绑定输入ID
+			if (AbilityToInputIDMap.Contains(AbilityTag))
+			{
+				const EAysAbilityInputID InputID = AbilityToInputIDMap[AbilityTag];
+				AbilitySpec.InputID = static_cast<int32>(InputID);
+			}
+			AbilitySystemComponent->GiveAbility(AbilitySpec);
+		}
+	}	
+}
+
 // Server only
 // PC and PS valid
 void AAysPlayer::PossessedBy(AController* NewController)
@@ -109,7 +128,10 @@ void AAysPlayer::PossessedBy(AController* NewController)
 		CMC->InitBasicLocomotion();
 	}
 
+	// 初始化武器相关功能
 	WeaponComponent->InitWeaponComponent();
+	// 获得初始技能
+	GrantInitialAbilities();
 }
 
 // Client only

@@ -7,5 +7,6 @@ enum class EAysAbilityInputID : uint8
 {
 	None UMETA(DisplayName="None"),
 	Fire UMETA(DisplayName="Fire"),
-	Reload UMETA(DisplayName="Reload")
+	Reload UMETA(DisplayName="Reload"),
+	Dash UMETA(DisplayName="Dash")
 };

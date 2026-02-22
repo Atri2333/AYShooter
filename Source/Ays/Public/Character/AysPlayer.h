@@ -5,8 +5,11 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
+#include "AysAbilityInputID.h"
+#include "GameplayTagContainer.h"
 #include "AysPlayer.generated.h"
 
+class UGameplayAbility;
 class UTraversalComponent;
 class USwayComponent;
 class UWeaponComponent;
@@ -110,7 +113,15 @@ public:
 	// AS
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AbilitySystem")
 	TObjectPtr<UAysAttributeSet> AttributeSet;
+	
+	// 角色技能
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilitySystem")
+	TArray<TSubclassOf<UGameplayAbility>> CharacterAbilities;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilitySystem")
+	TMap<FGameplayTag, EAysAbilityInputID> AbilityToInputIDMap;
 
 private:
 	void InitAbilityActorInfo();
+	void GrantInitialAbilities();
 };
