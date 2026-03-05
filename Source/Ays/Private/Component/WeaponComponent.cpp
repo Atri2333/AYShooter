@@ -161,6 +161,18 @@ FTransform UWeaponComponent::GetCurrentWeaponSocketTransform(const FName& Socket
 	return SocketTransform;
 }
 
+float UWeaponComponent::GetCurrentWeaponFireDistance() const
+{
+	if (!IsValid(CurrentWeapon)) return 0.f;
+	return CurrentWeapon->GetFireDistance();
+}
+
+float UWeaponComponent::GetCurrentWeaponFireWidth() const
+{
+	if (!IsValid(CurrentWeapon)) return 0.f;
+	return CurrentWeapon->GetAttackWidth();
+}
+
 void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();

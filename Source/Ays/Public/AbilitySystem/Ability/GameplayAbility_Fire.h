@@ -7,6 +7,42 @@
 #include "GameplayAbility_Fire.generated.h"
 
 class AAysPlayerController;
+
+USTRUCT(BlueprintType)
+struct FFireTargetData : public FGameplayAbilityTargetData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	FVector RelativeMuzzleOffset;
+	
+	UPROPERTY()
+	FVector FireDirection;
+	
+	virtual UScriptStruct* GetScriptStruct() const override
+	{
+		return FFireTargetData::StaticStruct();
+	}
+	
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
+	{
+		Ar << RelativeMuzzleOffset;
+		Ar << FireDirection;
+		
+		bOutSuccess = true;
+		return true;
+	}
+};
+
+template<>
+struct TStructOpsTypeTraits<FFireTargetData> : public TStructOpsTypeTraitsBase2<FFireTargetData>
+{
+	enum
+	{
+		WithNetSerializer = true // This is REQUIRED for FGameplayAbilityTargetDataHandle net serialization to work
+	};
+};
+
 /**
  * 
  */
@@ -42,6 +78,8 @@ protected:
 	
 	UFUNCTION(BlueprintPure)
 	bool CanFire();
+	
+	void DoFireTrace(const FVector& Start, const FVector& End, FHitResult& OutHitResult);
 
 protected:
 
@@ -55,12 +93,16 @@ protected:
 
 	UPROPERTY(Transient, BlueprintReadOnly)
 	TObjectPtr<AAysPlayerController> OwnerPC;
-
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName MuzzleSocketName = TEXT("MuzzleFlashSocket");
 
 	float FireInterval;
 
 	bool bIsAutoFiring = false;
 
 	int32 ShotsFired = 0;
+	
+protected:
+	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 };

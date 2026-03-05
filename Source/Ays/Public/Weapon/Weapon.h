@@ -30,6 +30,8 @@ public:
 	virtual bool CanFire() const;
 	virtual bool CanReload() const;
 	virtual void ApplyReloadLogic();
+	virtual float GetFireDistance() const { return AttackRange; }
+	virtual float GetAttackWidth() const {return AttackWidth;}
 
 	FOnWeaponFiredSignature OnWeaponFiredDelegate;
 
@@ -40,6 +42,14 @@ protected:
 	// 单次攻击伤害
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float Damage;
+	
+	// 攻击范围
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	float AttackRange = 1000.f;
+	
+	// 攻击宽度
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	float AttackWidth = 10.f;
 
 	// 是否可以重复攻击（如自动步枪）
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")

@@ -52,6 +52,12 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FTransform GetCurrentWeaponSocketTransform(const FName& SocketName) const;
+	
+	UFUNCTION(BlueprintPure)
+	float GetCurrentWeaponFireDistance() const;
+	
+	UFUNCTION(BlueprintPure)
+	float GetCurrentWeaponFireWidth() const;
 
 protected:
 

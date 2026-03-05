@@ -3,10 +3,12 @@
 
 #include "AbilitySystem/Ability/GameplayAbility_Fire.h"
 
+#include "AbilitySystemComponent.h"
 #include "Component/LocomotionStateComponent.h"
 #include "Component/WeaponComponent.h"
 #include "Curves/CurveVector.h"
 #include "Data/WeaponDataAsset.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Player/AysPlayerController.h"
 
 
@@ -26,6 +28,14 @@ void UGameplayAbility_Fire::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		return;
 	}
 
+	if (HasAuthority(&ActivationInfo))
+	{
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			ASC->AbilityTargetDataSetDelegate(Handle, ActivationInfo.GetActivationPredictionKey())
+				.AddUObject(this, &ThisClass::OnTargetDataReceived);
+		}
+	}
 	OwnerPC = Cast<AAysPlayerController>(OwnerPlayer->GetController());
 	ShotsFired = 0;
 	
@@ -52,6 +62,14 @@ void UGameplayAbility_Fire::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	ClearAutoFire();
+	if (HasAuthority(&ActivationInfo))
+	{
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			ASC->AbilityTargetDataSetDelegate(Handle, ActivationInfo.GetActivationPredictionKey())
+				.RemoveAll(this);
+		}
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -98,6 +116,60 @@ void UGameplayAbility_Fire::DoFireOnce_Implementation()
 		}
 	}
 	
+	if (IsLocallyControlled())
+	{
+		const FVector MuzzleWorld = OwnerWeaponComp->GetCurrentWeaponSocketTransform(MuzzleSocketName).GetLocation();
+		const FVector OwnerWorld = OwnerPlayer->GetActorLocation();
+		const FVector RelativeOffset = MuzzleWorld - OwnerWorld;
+		
+		// 相机方向
+		FVector CamForward = OwnerPC->PlayerCameraManager->GetCameraRotation().Vector();
+		FVector CamLoc = OwnerPC->PlayerCameraManager->GetCameraLocation();
+		FVector CamTraceEnd = CamLoc + CamForward * OwnerWeaponComp->GetCurrentWeaponFireDistance();
+		
+		// 第一次Trace，从相机位置向前Trace
+		FHitResult CameraTraceHit;
+		DoFireTrace(CamLoc, CamTraceEnd, CameraTraceHit);
+		
+		FVector FinalHitLocation = CameraTraceHit.bBlockingHit ? CameraTraceHit.ImpactPoint : CamTraceEnd;
+		
+		FVector MuzzleTraceDirection = (FinalHitLocation - MuzzleWorld).GetSafeNormal();
+		
+		// 设置要发送给服务器的TargetData
+		FFireTargetData* FireTargetData = new FFireTargetData();
+		FireTargetData->FireDirection = MuzzleTraceDirection;
+		FireTargetData->RelativeMuzzleOffset = RelativeOffset;
+		
+		FGameplayAbilityTargetDataHandle TargetDataHandle;
+		TargetDataHandle.Add(FireTargetData);
+		
+		// 发送TargetData到服务器
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			ASC->ServerSetReplicatedTargetData(
+				GetCurrentAbilitySpecHandle(),
+				GetCurrentActivationInfo().GetActivationPredictionKey(),
+				TargetDataHandle,
+				FGameplayTag(),
+				ASC->ScopedPredictionKey
+			);
+		}
+		
+		// 第二次Trace，预测表现
+		FVector MuzzleTraceEnd = MuzzleWorld + MuzzleTraceDirection * OwnerWeaponComp->GetCurrentWeaponFireDistance();
+		FHitResult MuzzleTraceHit;
+		DoFireTrace(MuzzleWorld, MuzzleTraceEnd, MuzzleTraceHit);
+		
+		UKismetSystemLibrary::DrawDebugSphere(
+			this,
+			MuzzleTraceHit.ImpactPoint,
+			15.f,
+			12,
+			FLinearColor::Green,
+			2.f
+		);
+	}
+	
 	++ShotsFired;
 	ApplyRecoilOnce();
 	OwnerWeaponComp->FireWeapon();
@@ -127,4 +199,65 @@ void UGameplayAbility_Fire::ApplyRecoilOnce()
 bool UGameplayAbility_Fire::CanFire()
 {
 	return OwnerWeaponComp->CanFireWeapon();
+}
+
+void UGameplayAbility_Fire::DoFireTrace(const FVector& Start, const FVector& End, FHitResult& OutHitResult)
+{
+	UKismetSystemLibrary::CapsuleTraceSingle(
+			this,
+			Start,
+			End,
+			OwnerWeaponComp->GetCurrentWeaponFireWidth(),
+			OwnerWeaponComp->GetCurrentWeaponFireWidth(),
+			UEngineTypes::ConvertToTraceType(ECC_Visibility),
+			false,
+			TArray<AActor*>({OwnerPlayer}),
+			EDrawDebugTrace::None,
+			OutHitResult,
+			true
+		);
+}
+
+// Server-only
+void UGameplayAbility_Fire::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle,
+	FGameplayTag ActivationTag)
+{
+	FGameplayAbilityActivationInfo ActivationInfo = GetCurrentActivationInfo();
+	if (!HasAuthority(&ActivationInfo)) return;
+	
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->ConsumeClientReplicatedTargetData(GetCurrentAbilitySpecHandle(),
+			ActivationInfo.GetActivationPredictionKey());
+	}
+	
+	if (DataHandle.Data.Num() ==0 || DataHandle.Data[0] == nullptr)
+	{
+		return;
+	}
+	
+	const FGameplayAbilityTargetData* BaseData = DataHandle.Data[0].Get();
+	const FFireTargetData* FireData = static_cast<const FFireTargetData*>(BaseData);
+	if (!FireData)
+	{
+		return;
+	}
+	
+	const FVector FireDir = FireData->FireDirection;
+	const FVector RelativeMuzzleOffset = FireData->RelativeMuzzleOffset;
+	
+	FHitResult MuzzleTraceHit;
+	DoFireTrace(
+		OwnerPlayer->GetActorLocation() + RelativeMuzzleOffset, 
+		OwnerPlayer->GetActorLocation() + RelativeMuzzleOffset + FireDir * OwnerWeaponComp->GetCurrentWeaponFireDistance(), 
+		MuzzleTraceHit);
+	
+	UKismetSystemLibrary::DrawDebugSphere(
+			this,
+			MuzzleTraceHit.ImpactPoint,
+			20.f,
+			12,
+			FLinearColor::Red,
+			2.f
+		);
 }
