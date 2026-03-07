@@ -15,7 +15,6 @@
 UFPSCharacterMovementComponent::FSavedMove_FPS::FSavedMove_FPS()
 {
 	Saved_bWantsToSprint = false;
-	Saved_bWantsToSlide = false;
 }
 
 void UFPSCharacterMovementComponent::InitializeComponent()
@@ -30,7 +29,7 @@ bool UFPSCharacterMovementComponent::FSavedMove_FPS::CanCombineWith(const FSaved
                                                                     ACharacter* InCharacter, float MaxDelta) const
 {
 	const FSavedMove_FPS* NewFPSMove = static_cast<const FSavedMove_FPS*>(NewMove.Get());
-	if (Saved_bWantsToSprint != NewFPSMove->Saved_bWantsToSprint || Saved_bWantsToSlide != NewFPSMove->Saved_bWantsToSlide)
+	if (Saved_bWantsToSprint != NewFPSMove->Saved_bWantsToSprint)
 	{
 		// Sprint状态不同，不能合并
 		return false;
@@ -44,7 +43,6 @@ void UFPSCharacterMovementComponent::FSavedMove_FPS::Clear()
 	FSavedMove_Character::Clear();
 
 	Saved_bWantsToSprint = false;
-	Saved_bWantsToSlide = false;
 }
 
 uint8 UFPSCharacterMovementComponent::FSavedMove_FPS::GetCompressedFlags() const
@@ -68,7 +66,6 @@ void UFPSCharacterMovementComponent::FSavedMove_FPS::SetMoveFor(ACharacter* Char
 		if (UFPSCharacterMovementComponent* FPSCMC = Cast<UFPSCharacterMovementComponent>(Character->GetCharacterMovement()))
 		{
 			Saved_bWantsToSprint = FPSCMC->Safe_bWantsToSprint;
-			Saved_bWantsToSlide = FPSCMC->Safe_bWantsToSlide;
 		}
 	}
 }
@@ -82,7 +79,6 @@ void UFPSCharacterMovementComponent::FSavedMove_FPS::PrepMoveFor(ACharacter* Cha
 		if (UFPSCharacterMovementComponent* FPSCMC = Cast<UFPSCharacterMovementComponent>(Character->GetCharacterMovement()))
 		{
 			FPSCMC->Safe_bWantsToSprint = Saved_bWantsToSprint;
-			FPSCMC->Safe_bWantsToSlide = Saved_bWantsToSlide;
 		}
 	}
 }
@@ -146,7 +142,7 @@ bool UFPSCharacterMovementComponent::CanCrouchInCurrentState() const
 
 bool UFPSCharacterMovementComponent::CanAttemptJump() const
 {
-	return Super::CanAttemptJump() || Safe_bWantsToSlide;
+	return Super::CanAttemptJump();
 }
 
 void UFPSCharacterMovementComponent::InitLocomotionComponent()
@@ -292,15 +288,12 @@ bool UFPSCharacterMovementComponent::IsCustomMovementMode(ECustomMovementMode Mo
 
 void UFPSCharacterMovementComponent::EnterSlide()
 {
-	Safe_bWantsToSlide = true;
 	Velocity += Velocity.GetSafeNormal2D() * Slide_EnterImpulse;
 	SetMovementMode(MOVE_Custom, ECustomMovementMode::CMOVE_Slide);
 }
 
 void UFPSCharacterMovementComponent::ExitSlide(bool bFall)
-{
-	Safe_bWantsToSlide = false;
-	
+{	
 	FQuat NewRotation = FRotationMatrix::MakeFromXZ(UpdatedComponent->GetForwardVector().GetSafeNormal2D(), FVector::UpVector).ToQuat();
 	FHitResult Hit;
 	SafeMoveUpdatedComponent(FVector::ZeroVector, NewRotation, true, Hit);
@@ -318,6 +311,8 @@ void UFPSCharacterMovementComponent::ExitSlide(bool bFall)
 
 void UFPSCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations)
 {
+	// 从PhysWalking借鉴过来的
+	
 	if (deltaTime < MIN_TICK_TIME)
 	{
 		return;
@@ -333,54 +328,66 @@ void UFPSCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations
     	StartNewPhysics(deltaTime, Iterations);
     	return;
     }
-
-	// Surface Gravity
-	Velocity += Slide_GravityForce * FVector::DownVector * deltaTime;
-
-	// Strafe
-	if (FMath::Abs(FVector::DotProduct(Acceleration.GetSafeNormal(), UpdatedComponent->GetRightVector())) > .5)
-	{
-		Acceleration = Acceleration.ProjectOnTo(UpdatedComponent->GetRightVector());
-	}
-	else
-	{
-		Acceleration = FVector::ZeroVector;
-	}
-
-	// Calc Velocity
-	if(!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
-	{
-		CalcVelocity(deltaTime, Slide_Friction, true, GetMaxBrakingDeceleration());
-	}
-	ApplyRootMotionToVelocity(deltaTime);
-
-	// Perform Move
-	Iterations++;
+	
 	bJustTeleported = false;
+	bool bCheckedFall = false;
+	bool bTriedLedgeMove = false;
+	float remainingTime = deltaTime;
 	
-	FVector OldLocation = UpdatedComponent->GetComponentLocation();
-	FQuat OldRotation = UpdatedComponent->GetComponentRotation().Quaternion();
-	FHitResult Hit(1.f);
-	FVector Adjusted = Velocity * deltaTime;
-	SafeMoveUpdatedComponent(Adjusted, OldRotation, true, Hit);
-
-	if (Hit.Time < 1.f)
+	// Perform the move, substep
+	while ( (remainingTime >= MIN_TICK_TIME) && (Iterations < MaxSimulationIterations) && CharacterOwner && (CharacterOwner->GetController() || bRunPhysicsWithNoController || HasAnimRootMotion() || CurrentRootMotion.HasOverrideVelocity() || (CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy)) )
 	{
-		HandleImpact(Hit, deltaTime, Adjusted);
-		SlideAlongSurface(Adjusted, (1.f - Hit.Time), Hit.Normal, Hit, true);
-	}
-
-	FHitResult NewSurfaceHit;
-	bFall = !GetSlideSurface(NewSurfaceHit);
-	if (bFall || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
-	{
-		ExitSlide(bFall);
-	}
+		Iterations++;
+		bJustTeleported = false;
+		const float timeTick = GetSimulationTimeStep(remainingTime, Iterations);
+		remainingTime -= timeTick;
+		
+		// Save current values
+		UPrimitiveComponent * const OldBase = GetMovementBase();
+		const FVector PreviousBaseLocation = (OldBase != NULL) ? OldBase->GetComponentLocation() : FVector::ZeroVector;
+		const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+		const FQuat OldRotation = UpdatedComponent->GetComponentRotation().Quaternion();
+		const FFindFloorResult OldFloor = CurrentFloor;
+		
+		// Surface Gravity
+		// v = v0 + at
+		Velocity += Slide_GravityForce * FVector::DownVector * timeTick;
+		
+		// Strafe
+		Acceleration = Acceleration.ProjectOnTo(UpdatedComponent->GetRightVector());
+		
+		// Calc Velocity
+		if(!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+		{
+			CalcVelocity(timeTick, Slide_Friction, false, GetMaxBrakingDeceleration());
+		}
+		
+		ApplyRootMotionToVelocity(timeTick);
+		
+		FHitResult Hit(1.f);
+		FVector Adjusted = Velocity * timeTick;
+		SafeMoveUpdatedComponent(Adjusted, OldRotation, true, Hit);
+		
+		if (Hit.Time < 1.f)
+		{
+			HandleImpact(Hit, timeTick, Adjusted);
+			SlideAlongSurface(Adjusted, (1.f - Hit.Time), Hit.Normal, Hit, true);
+		}
+		
+		FHitResult NewSurfaceHit;
+		bFall = !GetSlideSurface(NewSurfaceHit);
+		if (bFall || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
+		{
+			ExitSlide(bFall);
+			StartNewPhysics(remainingTime, Iterations);
+			return;
+		}
 	
-	// Update Outgoing Velocity & Acceleration
-	if( !bJustTeleported && !HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
-	{
-		Velocity = (UpdatedComponent->GetComponentLocation() - OldLocation) / deltaTime;
+		// Update Outgoing Velocity & Acceleration
+		if( !bJustTeleported && !HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+		{
+			Velocity = (UpdatedComponent->GetComponentLocation() - OldLocation) / timeTick;
+		}
 	}
 }
 

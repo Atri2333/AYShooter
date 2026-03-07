@@ -30,8 +30,6 @@ class AYS_API UFPSCharacterMovementComponent : public UCharacterMovementComponen
 	{
 		// Flags
 		uint8 Saved_bWantsToSprint:1;
-		// other variables
-		uint8 Saved_bWantsToSlide:1;
 	public:
 		FSavedMove_FPS();
 
@@ -61,7 +59,6 @@ class AYS_API UFPSCharacterMovementComponent : public UCharacterMovementComponen
 	// 否则在Replay的时候会出问题，因为Replay前后角色属性可能不一样
 	// 一般这种变量要同步到SavedMove里去，这样Server才能收到正确的状态
 	bool Safe_bWantsToSprint = false;
-	bool Safe_bWantsToSlide = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AAysPlayer> AysPlayer;
