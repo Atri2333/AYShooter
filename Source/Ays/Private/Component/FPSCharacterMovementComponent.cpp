@@ -290,6 +290,8 @@ void UFPSCharacterMovementComponent::EnterSlide()
 {
 	Velocity += Velocity.GetSafeNormal2D() * Slide_EnterImpulse;
 	SetMovementMode(MOVE_Custom, ECustomMovementMode::CMOVE_Slide);
+	
+	FindFloor(UpdatedComponent->GetComponentLocation(), CurrentFloor, true, NULL);
 }
 
 void UFPSCharacterMovementComponent::ExitSlide(bool bFall)
@@ -351,7 +353,10 @@ void UFPSCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations
 		
 		// Surface Gravity
 		// v = v0 + at
-		Velocity += Slide_GravityForce * FVector::DownVector * timeTick;
+		// 只计算水平分量，在MoveAlongFloor里会适配斜坡
+		FVector SlopeForce = CurrentFloor.HitResult.Normal;
+		SlopeForce.Z = 0.f;
+		Velocity += SlopeForce * Slide_GravityForce * deltaTime;
 		
 		// Strafe
 		Acceleration = Acceleration.ProjectOnTo(UpdatedComponent->GetRightVector());
@@ -366,12 +371,33 @@ void UFPSCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iterations
 		
 		FHitResult Hit(1.f);
 		FVector Adjusted = Velocity * timeTick;
-		SafeMoveUpdatedComponent(Adjusted, OldRotation, true, Hit);
+		// SafeMoveUpdatedComponent(Adjusted, OldRotation, true, Hit);
+		//
+		// UE_LOG(LogTemp, Warning, TEXT("Hit Time = %f"), Hit.Time);
+		// if (Hit.Time < 1.f)
+		// {
+		// 	HandleImpact(Hit, timeTick, Adjusted);
+		// 	SlideAlongSurface(Adjusted, (1.f - Hit.Time), Hit.Normal, Hit, true);
+		// }
 		
-		if (Hit.Time < 1.f)
+		FStepDownResult StepDownResult;
+		
+		const bool bZeroDelta = Adjusted.IsNearlyZero();
+		
+		if (!bZeroDelta)
 		{
-			HandleImpact(Hit, timeTick, Adjusted);
-			SlideAlongSurface(Adjusted, (1.f - Hit.Time), Hit.Normal, Hit, true);
+			MoveAlongFloor(Velocity, timeTick, &StepDownResult);
+		}
+		
+		// Update floor.
+		// StepUp might have already done it for us.
+		if (StepDownResult.bComputedFloor)
+		{
+			CurrentFloor = StepDownResult.FloorResult;
+		}
+		else
+		{
+			FindFloor(UpdatedComponent->GetComponentLocation(), CurrentFloor, bZeroDelta, NULL);
 		}
 		
 		FHitResult NewSurfaceHit;
