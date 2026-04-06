@@ -123,9 +123,12 @@ void UGameplayAbility_Fire::DoFireOnce_Implementation()
 		const FVector RelativeOffset = MuzzleWorld - OwnerWorld;
 		
 		// 相机方向
-		FVector CamForward = OwnerPC->PlayerCameraManager->GetCameraRotation().Vector();
-		FVector CamLoc = OwnerPC->PlayerCameraManager->GetCameraLocation();
-		FVector CamTraceEnd = CamLoc + CamForward * OwnerWeaponComp->GetCurrentWeaponFireDistance();
+		const FVector CamForward = OwnerPC->PlayerCameraManager->GetCameraRotation().Vector();
+		const float MaxSpreadAngle = OwnerWeaponComp->CalculateMaxWeaponSpreadAngle();
+		//const FVector OffsetDir = FMath::VRandCone(CamForward, FMath::DegreesToRadians(MaxSpreadAngle));
+		const FVector OffsetDir = UWeaponComponent::VRandCone(CamForward, FMath::DegreesToRadians(MaxSpreadAngle));
+		const FVector CamLoc = OwnerPC->PlayerCameraManager->GetCameraLocation();
+		const FVector CamTraceEnd = CamLoc + OffsetDir * OwnerWeaponComp->GetCurrentWeaponFireDistance();
 		
 		// 第一次Trace，从相机位置向前Trace
 		FHitResult CameraTraceHit;

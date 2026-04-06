@@ -58,6 +58,9 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	float GetCurrentWeaponFireWidth() const;
+	
+	UFUNCTION(BlueprintPure)
+	float CalculateMaxWeaponSpreadAngle() const;
 
 protected:
 
@@ -75,6 +78,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Data")
 	TObjectPtr<UWeaponDataAsset> WeaponDataAsset;
 
+	UPROPERTY(EditDefaultsOnly, Category="Weapon")
+	FFloatRange SpreadSpeedRange = FFloatRange(50.f, 150.f);
 
 public:	
 
@@ -93,6 +98,8 @@ public:
 
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
+	
+	static FVector VRandCone(FVector const& Dir, float ConeHalfAngleRad);
 
 protected:
 

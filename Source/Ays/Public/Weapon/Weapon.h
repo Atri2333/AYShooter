@@ -32,6 +32,7 @@ public:
 	virtual void ApplyReloadLogic();
 	virtual float GetFireDistance() const { return AttackRange; }
 	virtual float GetAttackWidth() const {return AttackWidth;}
+	virtual float GetMaxSpreadAngle() const { return MaxSpreadAngle; }
 
 	FOnWeaponFiredSignature OnWeaponFiredDelegate;
 
@@ -64,9 +65,12 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
 	// 武器装备到角色类上的Fpp Socket名称
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName FppEquipSocketName;
 
+	// 最大散步角度（做开火时的弹道散布）
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	float MaxSpreadAngle = 5.f;
 
 public:
 	

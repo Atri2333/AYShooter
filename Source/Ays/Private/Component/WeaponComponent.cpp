@@ -173,6 +173,17 @@ float UWeaponComponent::GetCurrentWeaponFireWidth() const
 	return CurrentWeapon->GetAttackWidth();
 }
 
+float UWeaponComponent::CalculateMaxWeaponSpreadAngle() const
+{
+	if (!IsValid(CurrentWeapon)) return 0.f;
+	const float MaxSpreadAngle = CurrentWeapon->GetMaxSpreadAngle();
+	const float PlayerSpeed = OwnerPlayer->GetVelocity().Size2D();
+	const float SpreadSpeedMin = SpreadSpeedRange.GetLowerBoundValue();
+	const float SpreadSpeedMax = SpreadSpeedRange.GetUpperBoundValue();
+	const float SpeedAlpha = FMath::GetMappedRangeValueClamped(FVector2D(SpreadSpeedMin, SpreadSpeedMax), FVector2D(0.f, 1.f), PlayerSpeed);
+	return MaxSpreadAngle * SpeedAlpha;
+}
+
 void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -195,4 +206,33 @@ void UWeaponComponent::OnRep_CurrentWeapon()
 {
 	EquipWeapon(CurrentWeapon);
 	OnWeaponStatChanged();
+}
+
+FVector UWeaponComponent::VRandCone(FVector const& Dir, float ConeHalfAngleRad)
+{
+	if (ConeHalfAngleRad > 0.f)
+	{
+		float const RandU = FMath::FRand();
+		float const RandV = FMath::FRand();
+		
+		const float Radius = FMath::Tan(ConeHalfAngleRad);
+		const float Theta = RandU * 2.f * PI;
+		const float R = Radius * FMath::Sqrt(RandV);
+		
+		// get axes we need to rotate around
+		FMatrix const DirMat = FRotationMatrix(Dir.Rotation());
+		
+		const FVector Forward = DirMat.GetScaledAxis(EAxis::X);
+		const FVector Right = DirMat.GetScaledAxis(EAxis::Y);
+		const FVector Up = DirMat.GetScaledAxis(EAxis::Z);
+
+		const FVector DiskOffset = (Right * FMath::Cos(Theta) + Up * FMath::Sin(Theta)) * R;
+		const FVector Result = (Forward + DiskOffset).GetSafeNormal();
+
+		return Result.GetSafeNormal();
+	}
+	else
+	{
+		return Dir.GetSafeNormal();
+	}
 }
