@@ -100,22 +100,43 @@ void UFPSCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 	Safe_bWantsToSprint = (Flags & FSavedMove_FPS::FLAG_Custom_0) != 0;
 }
 
+float UFPSCharacterMovementComponent::GetMaxSpeed() const
+{
+	if (MovementMode == MOVE_Walking && Safe_bWantsToSprint && !IsCrouching())
+		return Sprint_MaxWalkSpeed;
+	
+	if (MovementMode != MOVE_Custom)
+		return Super::GetMaxSpeed();
+	
+	switch (CustomMovementMode)
+	{
+	case CMOVE_Slide:
+		return Slide_MaxSpeed;
+	default:
+		UE_LOG(LogTemp, Fatal, TEXT("Invalid Movement Mode"))
+		return -1.f;
+	}
+}
+
+float UFPSCharacterMovementComponent::GetMaxBrakingDeceleration() const
+{
+	if (MovementMode != MOVE_Custom) return Super::GetMaxBrakingDeceleration();
+	
+	switch (CustomMovementMode)
+	{
+	case CMOVE_Slide:
+		return BrakingDecelerationSliding;
+	default:
+		UE_LOG(LogTemp, Fatal, TEXT("Invalid Movement Mode"))
+		return -1.f;
+	}
+}
+
 void UFPSCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation,
-	const FVector& OldVelocity)
+                                                       const FVector& OldVelocity)
 {
 	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
-
-	if (MovementMode == MOVE_Walking)
-	{
-		if (Safe_bWantsToSprint)
-		{
-			MaxWalkSpeed = Sprint_MaxWalkSpeed;
-		}
-		else
-		{
-			MaxWalkSpeed = Walk_MaxWalkSpeed;
-		}
-	}
+	
 }
 
 FNetworkPredictionData_Client* UFPSCharacterMovementComponent::GetPredictionData_Client() const

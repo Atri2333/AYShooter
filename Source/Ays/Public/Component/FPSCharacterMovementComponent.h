@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/AysPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "FPSCharacterMovementComponent.generated.h"
 
@@ -74,6 +73,8 @@ protected:
 public:
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 
+	virtual float GetMaxSpeed() const override;
+	virtual float GetMaxBrakingDeceleration() const override;
 	virtual void OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity) override;
 
 	// 获取我们自己的NetworkPredictionData_Client
@@ -98,9 +99,11 @@ public:
 	float Walk_MaxWalkSpeed = 300.f;
 
 	UPROPERTY(EditDefaultsOnly) float Slide_MinSpeed=400;
+	UPROPERTY(EditDefaultsOnly) float Slide_MaxSpeed=400;
 	UPROPERTY(EditDefaultsOnly) float Slide_EnterImpulse=400;
 	UPROPERTY(EditDefaultsOnly) float Slide_GravityForce=200;
 	UPROPERTY(EditDefaultsOnly) float Slide_Friction=.1;
+	UPROPERTY(EditDefaultsOnly) float BrakingDecelerationSliding=1000.f;
 	
 	UPROPERTY(EditDefaultsOnly) float DashImpulse = 600.f;
 
