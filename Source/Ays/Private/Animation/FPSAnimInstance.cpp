@@ -89,13 +89,27 @@ void UFPSAnimInstance::InterpLeanAngle(float DeltaSeconds)
 {
 	// 互斥与目标值计算
 	float LeanTarget = 0.f;
-	if (bIsLeaningLeft && !bIsLeaningRight)
+	if (IsValid(CharacterMovementComponent) && CharacterMovementComponent->IsWallRunning())
 	{
-		LeanTarget = -1.f;
+		if (CharacterMovementComponent->WallRunningIsRight())
+		{
+			LeanTarget = -1.f;
+		}
+		else
+		{
+			LeanTarget = 1.f;
+		}
 	}
-	else if (bIsLeaningRight && !bIsLeaningLeft)
+	else
 	{
-		LeanTarget = 1.f;
+		if (bIsLeaningLeft && !bIsLeaningRight)
+		{
+			LeanTarget = -1.f;
+		}
+		else if (bIsLeaningRight && !bIsLeaningLeft)
+		{
+			LeanTarget = 1.f;
+		}
 	}
 	// 平滑插值到目标
 	LeanAlpha = FMath::FInterpTo(LeanAlpha, LeanTarget, DeltaSeconds, LeanInterpSpeed);
@@ -115,6 +129,8 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// 放Tick是为了一定要绑定成功，可能有更好的方式 TODO
 	InitPtr();
 	BindCallbacksToLocomotionStateComponent();
+	
+	
 
 	if (IsValid(CharacterMovementComponent))
 	{
@@ -122,8 +138,9 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		const FVector Velocity = CharacterMovementComponent->Velocity;
 		SpeedXY = FVector(Velocity.X, Velocity.Y, 0.f).Size();
+		
 	}
-
+	
 	InterpLeanAngle(DeltaSeconds);
 	
 	if (CharacterMovementComponent)

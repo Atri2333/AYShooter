@@ -112,6 +112,8 @@ float UFPSCharacterMovementComponent::GetMaxSpeed() const
 	{
 	case CMOVE_Slide:
 		return Slide_MaxSpeed;
+	case CMOVE_WallRun:
+		return MaxWallRunSpeed;
 	default:
 		UE_LOG(LogTemp, Fatal, TEXT("Invalid Movement Mode"))
 		return -1.f;
@@ -126,6 +128,8 @@ float UFPSCharacterMovementComponent::GetMaxBrakingDeceleration() const
 	{
 	case CMOVE_Slide:
 		return BrakingDecelerationSliding;
+	case CMOVE_WallRun:
+		return 0.f;
 	default:
 		UE_LOG(LogTemp, Fatal, TEXT("Invalid Movement Mode"))
 		return -1.f;
@@ -163,7 +167,32 @@ bool UFPSCharacterMovementComponent::CanCrouchInCurrentState() const
 
 bool UFPSCharacterMovementComponent::CanAttemptJump() const
 {
-	return Super::CanAttemptJump();
+	return Super::CanAttemptJump() || IsWallRunning();
+}
+
+bool UFPSCharacterMovementComponent::DoJump(bool bReplayingMoves)
+{
+	// Tip: 跳之前预先记录
+	const bool bWasWallRunning = IsWallRunning();
+	if (Super::DoJump(bReplayingMoves))
+	{
+		// 增加切向速度
+		if (bWasWallRunning)
+		{
+			const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+			const FVector Start = OldLocation;
+			const FVector CastDelta = UpdatedComponent->GetRightVector() * CapR() * 2;
+			const FVector End = Safe_bWallRunIsRight ? Start + CastDelta : Start - CastDelta;
+			const auto Params = AysPlayer->GetIgnoreCharacterParams();
+	
+			FHitResult WallHit;
+			GetWorld()->LineTraceSingleByProfile(WallHit, Start, End, "BlockAll", Params);
+			Velocity += WallHit.Normal * WallJumpOffForce;
+			
+		}
+		return true;
+	}
+	return false;
 }
 
 void UFPSCharacterMovementComponent::InitLocomotionComponent()
@@ -286,6 +315,12 @@ void UFPSCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float De
 		// 重置Slide
 		SlidedDuringThisCrouch = false;
 	}
+	
+	// Falling是进入WallRun的条件
+	if (IsFalling())
+	{
+		TryWallRun();
+	}
 }
 
 void UFPSCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations)
@@ -296,6 +331,9 @@ void UFPSCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iteration
 	{
 	case CMOVE_Slide:
 		PhysSlide(deltaTime, Iterations);
+		break;
+	case CMOVE_WallRun:
+		PhysWallRun(deltaTime, Iterations);
 		break;
 	default:
 		UE_LOG(LogTemp, Fatal, TEXT("Invalid Movement Mode"))
@@ -454,4 +492,181 @@ void UFPSCharacterMovementComponent::PerformDash()
 	
 	
 	SetMovementMode(MOVE_Falling);
+}
+
+bool UFPSCharacterMovementComponent::TryWallRun()
+{
+	// 只能通过Falling切换到WallRun
+	if (!IsFalling()) return false;
+	// 水平速度需要够快
+	if (Velocity.SizeSquared2D() < MinWallRunSpeed) return false;
+	// 下落速度不能太大
+	if (Velocity.Z < -MaxVerticalWallRunSpeed) return false;
+	
+	const FVector Start = UpdatedComponent->GetComponentLocation();
+	const FVector LeftEnd = Start - UpdatedComponent->GetRightVector() * CapR() * 2;
+	const FVector RightEnd = Start + UpdatedComponent->GetRightVector() * CapR() * 2;
+	auto Params = AysPlayer->GetIgnoreCharacterParams();
+	FHitResult FloorHit, WallHit;
+	
+	// 高度不能太低
+	if (GetWorld()->LineTraceSingleByProfile(FloorHit, Start, Start + FVector::DownVector * (CapHH() + MinWallRunHeight), "BlockAll", Params))
+	{
+		return false;
+	}
+	
+	// Left Cast
+	GetWorld()->LineTraceSingleByProfile(WallHit, Start, LeftEnd, "BlockAll", Params);
+	if (WallHit.IsValidBlockingHit() && (WallHit.Normal | Velocity) < 0)
+	{
+		Safe_bWallRunIsRight = false;
+	}
+	else
+	{
+		GetWorld()->LineTraceSingleByProfile(WallHit, Start, RightEnd, "BlockAll", Params);
+		if (WallHit.IsValidBlockingHit() && (WallHit.Normal | Velocity) < 0)
+		{
+			Safe_bWallRunIsRight = true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	const FVector ProjectedVelocity = FVector::VectorPlaneProject(Velocity, WallHit.Normal);
+	if (ProjectedVelocity.SizeSquared2D() < pow(MinWallRunSpeed, 2))
+	{
+		return false;
+	}
+	// All Conditions Passed
+	
+	Velocity = ProjectedVelocity;
+	Velocity.Z = FMath::Clamp(Velocity.Z, 0.f, MaxVerticalWallRunSpeed);
+	SetMovementMode(MOVE_Custom, CMOVE_WallRun);
+	
+	return true;
+}
+
+void UFPSCharacterMovementComponent::PhysWallRun(float deltaTime, int32 Iterations)
+{
+	if (deltaTime < MIN_TICK_TIME)
+	{
+		return;
+	}
+
+	if (!CharacterOwner || (!CharacterOwner->GetController() && !bRunPhysicsWithNoController && !HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity() && (CharacterOwner->GetLocalRole() != ROLE_SimulatedProxy)))
+	{
+		Acceleration = FVector::ZeroVector;
+		Velocity = FVector::ZeroVector;
+		return;
+	}
+	
+	bJustTeleported = false;
+	float remainingTime = deltaTime;
+	
+	while ( (remainingTime >= MIN_TICK_TIME) && (Iterations < MaxSimulationIterations) && CharacterOwner && (CharacterOwner->GetController() || bRunPhysicsWithNoController || HasAnimRootMotion() || CurrentRootMotion.HasOverrideVelocity() || (CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy)) )
+	{
+		Iterations++;
+		bJustTeleported = false;
+		const float timeTick = GetSimulationTimeStep(remainingTime, Iterations);
+		remainingTime -= timeTick;
+		
+		const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+		const FVector Start = OldLocation;
+		const FVector CastDelta = UpdatedComponent->GetRightVector() * CapR() * 2;
+		const FVector End = Safe_bWallRunIsRight ? Start + CastDelta : Start - CastDelta;
+		auto Params = AysPlayer->GetIgnoreCharacterParams();
+		const float SinPullAwayAngle = FMath::Sin(FMath::DegreesToRadians(WallRunPullAwayAngle));
+		
+		FHitResult WallHit;
+		GetWorld()->LineTraceSingleByProfile(WallHit, Start, End, "BlockAll", Params);
+		bool bWantsToPullAway = WallHit.IsValidBlockingHit() && !Acceleration.IsNearlyZero() && (Acceleration.GetSafeNormal() | WallHit.Normal) > SinPullAwayAngle;
+		
+		// 加速度方向向外，准备退出
+		if (!WallHit.IsValidBlockingHit() ||bWantsToPullAway || Acceleration.IsNearlyZero())
+		{
+			EndWallRun();
+			StartNewPhysics(remainingTime, Iterations);
+			return;
+		}
+		
+		// Clamp Acceleration
+		Acceleration = FVector::VectorPlaneProject(Acceleration, WallHit.Normal);
+		Acceleration.Z = 0.f;
+		
+		// Apply Acceleration
+		CalcVelocity(timeTick, 0.f, false, GetMaxBrakingDeceleration());
+		Velocity = FVector::VectorPlaneProject(Velocity, WallHit.Normal);
+		
+		const float TangentAccel = Acceleration.GetSafeNormal() | Velocity.GetSafeNormal2D();
+		const bool bVelUp = Velocity.Z > 0.f;
+		Velocity.Z += GetGravityZ() * WallRunGravityScaleCurve->GetFloatValue(bVelUp ? 0.f : TangentAccel) * timeTick;
+		if (Velocity.SizeSquared2D() < pow(MinWallRunSpeed, 2) || Velocity.Z < -MaxVerticalWallRunSpeed)
+		{
+			EndWallRun();
+			StartNewPhysics(remainingTime, Iterations);
+			return;
+		}
+		
+		// Compute move parameters
+		const FVector Delta = timeTick * Velocity;
+		const bool bZeroDelta = Delta.IsNearlyZero();
+		if ( bZeroDelta )
+		{
+			remainingTime = 0.f;
+		}
+		else
+		{
+			FHitResult Hit;
+			SafeMoveUpdatedComponent(Delta, UpdatedComponent->GetComponentQuat(), true, Hit);
+			const FVector WallAttractionDelta = -WallHit.Normal * WallAttractionForce * timeTick;
+			SafeMoveUpdatedComponent(WallAttractionDelta, UpdatedComponent->GetComponentQuat(), true, Hit);
+
+		}
+		
+		if (UpdatedComponent->GetComponentLocation() == OldLocation)
+		{
+			remainingTime = 0.f;
+			break;
+		}
+		
+		Velocity = (UpdatedComponent->GetComponentLocation() - OldLocation) / timeTick;
+	}
+	
+	const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+	const FVector Start = OldLocation;
+	const FVector CastDelta = UpdatedComponent->GetRightVector() * CapR() * 2;
+	const FVector End = Safe_bWallRunIsRight ? Start + CastDelta : Start - CastDelta;
+	auto Params = AysPlayer->GetIgnoreCharacterParams();
+	
+	FHitResult FloorHit, WallHit;
+	GetWorld()->LineTraceSingleByProfile(WallHit, Start, End, "BlockAll", Params);
+	GetWorld()->LineTraceSingleByProfile(FloorHit, Start, Start + FVector::DownVector * (CapHH() + MinWallRunHeight * .5f), "BlockAll", Params);
+
+	if (FloorHit.IsValidBlockingHit() || !WallHit.IsValidBlockingHit() || Velocity.SizeSquared2D() < pow(MinWallRunSpeed, 2))
+	{
+		EndWallRun();
+	}
+
+}
+
+void UFPSCharacterMovementComponent::EndWallRun()
+{
+	SetMovementMode(MOVE_Falling);
+}
+
+bool UFPSCharacterMovementComponent::IsServer() const
+{
+	return CharacterOwner->HasAuthority();
+}
+
+float UFPSCharacterMovementComponent::CapR() const
+{
+	return CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius();
+}
+
+float UFPSCharacterMovementComponent::CapHH() const
+{
+	return CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 }

@@ -51,6 +51,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Locomotion")
 	bool bIsLeaningRight;
+	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Combat")
 	bool bIsAiming;

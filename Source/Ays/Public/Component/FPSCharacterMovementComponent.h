@@ -15,6 +15,7 @@ enum ECustomMovementMode
 {
 	CMOVE_None			UMETA(Hidden),
 	CMOVE_Slide			UMETA(DisplayName = "Slide"),
+	CMOVE_WallRun		UMETA(DisplayName = "WallRun"),
 	CMOVE_MAX			UMETA(Hidden),
 };
 /**
@@ -58,6 +59,9 @@ class AYS_API UFPSCharacterMovementComponent : public UCharacterMovementComponen
 	// 否则在Replay的时候会出问题，因为Replay前后角色属性可能不一样
 	// 一般这种变量要同步到SavedMove里去，这样Server才能收到正确的状态
 	bool Safe_bWantsToSprint = false;
+	
+	// Test：墙走方向，但是先不采用SavedMove同步
+	bool Safe_bWallRunIsRight;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AAysPlayer> AysPlayer;
@@ -82,6 +86,7 @@ public:
 
 	virtual bool IsMovingOnGround() const override;
 	virtual bool CanAttemptJump() const override;
+	virtual bool DoJump(bool bReplayingMoves) override;
 	virtual bool CanCrouchInCurrentState() const override;
 	
 	void InitLocomotionComponent();
@@ -98,6 +103,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	float Walk_MaxWalkSpeed = 300.f;
 
+	// Slide
 	UPROPERTY(EditDefaultsOnly) float Slide_MinSpeed=400;
 	UPROPERTY(EditDefaultsOnly) float Slide_MaxSpeed=400;
 	UPROPERTY(EditDefaultsOnly) float Slide_EnterImpulse=400;
@@ -106,6 +112,16 @@ public:
 	UPROPERTY(EditDefaultsOnly) float BrakingDecelerationSliding=1000.f;
 	
 	UPROPERTY(EditDefaultsOnly) float DashImpulse = 600.f;
+	
+	// WallRun
+	UPROPERTY(EditDefaultsOnly) float MinWallRunSpeed=200.f;
+	UPROPERTY(EditDefaultsOnly) float MaxWallRunSpeed=800.f;
+	UPROPERTY(EditDefaultsOnly) float MaxVerticalWallRunSpeed=200.f;
+	UPROPERTY(EditDefaultsOnly) float WallRunPullAwayAngle=75;
+	UPROPERTY(EditDefaultsOnly) float WallAttractionForce = 200.f;
+	UPROPERTY(EditDefaultsOnly) float MinWallRunHeight=50.f;
+	UPROPERTY(EditDefaultsOnly) UCurveFloat* WallRunGravityScaleCurve;
+	UPROPERTY(EditDefaultsOnly) float WallJumpOffForce = 300.f;
 
 	UPROPERTY(EditAnywhere, Category = "Deprecared")
 	float CrouchAlpha = 0.f;
@@ -128,4 +144,19 @@ private:
 	// Dash
 public:
 	void PerformDash();
+	
+	// WallRun
+private:
+	bool TryWallRun();
+	void PhysWallRun(float deltaTime, int32 Iterations);
+	void EndWallRun();
+public:
+	UFUNCTION(BlueprintPure) bool IsWallRunning() const { return IsCustomMovementMode(CMOVE_WallRun); }
+	UFUNCTION(BlueprintPure) bool WallRunningIsRight() const { return Safe_bWallRunIsRight; }
+	
+	// Helpers
+private:
+	bool IsServer() const;
+	float CapR() const;
+	float CapHH() const;
 };
