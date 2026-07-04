@@ -1,0 +1,21 @@
+// YourProject/tsconfig.json
+
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "experimentalDecorators": true, // Set `true` to use of Decorators (i.e. RPC functions)
+    "jsx": "react",
+    "sourceMap": true,
+    "typeRoots": [
+      "Typing", // Specify the 'Typing' directory as a root (contains the deceleration files)
+      "./node_modules/@types"
+    ],
+    "rootDir": "TypeScript",
+    "outDir": "Content/JavaScript"  // Directory to output compiled .js files (if using `npx tsc` command)
+  },
+  "include": [
+    "TypeScript/**/*"   // Location of scripts. (e.g YourProject/TypeScript)
+    //...
+  ]
+}

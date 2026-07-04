@@ -1,11 +1,16 @@
-Binaries
+﻿Binaries
 DerivedDataCache
 Intermediate
 Saved
 Build
+Cooked
+Crashes
+Logs
 
 .vscode
 .vs
+.idea
+.history
 *.VC.db
 *.opensdf
 *.opendb
@@ -14,3 +19,5 @@ Build
 *.suo
 *.xcodeproj
 *.xcworkspace
+
+node_modules
