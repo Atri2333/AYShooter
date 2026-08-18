@@ -40,7 +40,7 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 
 	FppGunSceneComp = CreateDefaultSubobject<USceneComponent>("FppGunSceneComp");
 	// TODO：这里应该绑到IK_Hand_Gun上，但是IK骨骼不会跟随QE变换，后续会尝试解决
-	FppGunSceneComp->SetupAttachment(FppSkeletalMesh, RightHandBoneName);
+	FppGunSceneComp->SetupAttachment(FppSkeletalMesh, IKHandGunBoneName);
 
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
 
@@ -244,6 +244,7 @@ void AAysPlayer::UpdateFppCameraTransform()
 	FRotator FinalRot = FppCamera->GetRelativeRotation();
 	FinalRot.Roll = BoneRoll;
 
+	
 	UE_LOG(LogTemp, Warning, TEXT("AAysPlayer::UpdateFppCameraTransform BoneRoll: %f"), BoneRoll);
 
 	FppCamera->SetRelativeRotation(FinalRot);
