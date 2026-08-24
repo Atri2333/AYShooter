@@ -20,6 +20,4 @@ Logs
 *.xcodeproj
 *.xcworkspace
 
-.idea/
-
 node_modules
