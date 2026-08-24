@@ -45,7 +45,7 @@ protected:
 	void UpdateFppCameraTransform();
 	void InterpFppPivotZ(float DeltaTime);
 	void UpdatePivotPitch();
-	void ReconstructFppCompHierarchy();
+	void ApplyFppRigTransforms();
 
 	virtual bool CanJumpInternal_Implementation() const override;
 

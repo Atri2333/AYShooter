@@ -9,7 +9,6 @@
 #include "Component/SwayComponent.h"
 #include "Component/WeaponComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Engine/SkeletalMeshSocket.h"
 #include "Player/AysPlayerController.h"
 #include "Player/AysPlayerState.h"
 #include "UI/AysHUD.h"
@@ -22,9 +21,13 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 
 	FppPivot = CreateDefaultSubobject<USceneComponent>("FppPivot");
 	FppPivot->SetupAttachment(GetCapsuleComponent());
+	FppPivot->SetRelativeLocation(FVector(0.663092f, 0.0f, 82.575056f));
+	FppPivot->SetRelativeRotation(FRotator::ZeroRotator);
 
 	FppSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("FppSkeletalMesh");
-	FppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
+	FppSkeletalMesh->SetupAttachment(FppPivot);
+	FppSkeletalMesh->SetRelativeLocation(FVector(-0.663092f, 0.0f, -162.575056f));
+	FppSkeletalMesh->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
 
 	FppCamera = CreateDefaultSubobject<UCameraComponent>("FppCamera");
 	FppCamera->SetupAttachment(FppSkeletalMesh, FppCameraSocketName);
@@ -150,28 +153,6 @@ void AAysPlayer::OnRep_Controller()
 
 }
 
-void AAysPlayer::ReconstructFppCompHierarchy()
-{
-	if (IsValid(FppSkeletalMesh) && IsValid(FppCamera))
-	{
-		const FTransform SocketTransform = FppSkeletalMesh->GetSocketTransform(FppCameraSocketName);
-
-		// 调整Pivot 位置和旋转
-		FppPivot->SetWorldLocation(SocketTransform.GetLocation());
-		FppPivot->SetWorldRotation(FRotator(0, GetActorRotation().Yaw, 0));
-
-		// 重新调整Fpp的Hierarchy: FppPivot -> FppSkeletalMesh -> FppCamera
-		FppSkeletalMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		FppSkeletalMesh->AttachToComponent(FppPivot, FAttachmentTransformRules::KeepWorldTransform);
-
-		// 记录初始默认的 Pivot 的 Z
-		DefaultFppPivotZ = FppPivot->GetRelativeLocation().Z;
-
-		const FTransform IKHandGunTransform = FppSkeletalMesh->GetSocketTransform(IKHandGunBoneName);
-		FppGunSceneComp->SetWorldTransform(IKHandGunTransform);
-	}
-}
-
 bool AAysPlayer::CanJumpInternal_Implementation() const
 {
 	if (Super::CanJumpInternal_Implementation())
@@ -205,8 +186,7 @@ void AAysPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 重新调整Fpp的Hierarchy: FppPivot -> FppSkeletalMesh -> FppCamera
-	ReconstructFppCompHierarchy();
+	DefaultFppPivotZ = FppPivot->GetRelativeLocation().Z;
 }
 
 void AAysPlayer::UpdateFppCameraTransform()
