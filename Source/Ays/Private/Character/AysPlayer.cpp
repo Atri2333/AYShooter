@@ -2,13 +2,11 @@
 
 
 #include "Public/Character/AysPlayer.h"
-
 #include "AbilitySystem/AysAbilitySystemComponent.h"
 #include "AbilitySystem/AysAttributeSet.h"
 #include "Camera/CameraComponent.h"
 #include "Component/FPSCharacterMovementComponent.h"
 #include "Component/SwayComponent.h"
-#include "Component/TraversalComponent.h"
 #include "Component/WeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -21,10 +19,6 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UFPSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	// TppSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("TppSkeletalMesh");
-	// TppSkeletalMesh->SetupAttachment(GetCapsuleComponent());
-	// TppSkeletalMesh = GetMesh();
 
 	FppPivot = CreateDefaultSubobject<USceneComponent>("FppPivot");
 	FppPivot->SetupAttachment(GetCapsuleComponent());
@@ -39,32 +33,13 @@ AAysPlayer::AAysPlayer(const FObjectInitializer& ObjectInitializer)
 	FppCamera->bUsePawnControlRotation = false;
 
 	FppGunSceneComp = CreateDefaultSubobject<USceneComponent>("FppGunSceneComp");
-	// TODO：这里应该绑到IK_Hand_Gun上，但是IK骨骼不会跟随QE变换，后续会尝试解决
 	FppGunSceneComp->SetupAttachment(FppSkeletalMesh, IKHandGunBoneName);
 
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
 
-	TraversalComponent = CreateDefaultSubobject<UTraversalComponent>("TraversalComponent");
-
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
-}
-
-bool AAysPlayer::TryTraversal()
-{
-	FTraversalCheckInputs Inputs;
-	Inputs.TraceForwardDirection = GetActorForwardVector();
-	Inputs.TraceForwardDistance = 200.f;
-	Inputs.TraceOriginOffset = FVector();
-	Inputs.TraceEndOffset = FVector();
-	Inputs.TraceRadius = 30.f;
-	Inputs.TraceHalfHeight = 60.f;
-
-	bool TraversalCheckFailed = false;
-	bool MontageSelectionFailed = false;
-	TraversalComponent->TryTraversalAction(Inputs, TraversalCheckFailed, MontageSelectionFailed);
-	return !(TraversalCheckFailed || MontageSelectionFailed);
 }
 
 UAbilitySystemComponent* AAysPlayer::GetAbilitySystemComponent() const

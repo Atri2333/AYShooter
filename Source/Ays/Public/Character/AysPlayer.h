@@ -10,9 +10,8 @@
 #include "AysPlayer.generated.h"
 
 class UGameplayAbility;
-class UTraversalComponent;
 class USwayComponent;
-class UWeaponComponent;
+class UWeaponComponent;	
 class UAysAttributeSet;
 class UAysAbilitySystemComponent;
 class UFPSCharacterMovementComponent;
@@ -25,8 +24,6 @@ class AYS_API AAysPlayer : public ACharacter, public IAbilitySystemInterface
 
 public:
 	AAysPlayer(const FObjectInitializer& ObjectInitializer);
-
-	bool TryTraversal();
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
@@ -85,10 +82,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<UWeaponComponent> WeaponComponent;
 
-	// Traversal组件
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Traversal")
-	TObjectPtr<UTraversalComponent> TraversalComponent;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
 	FName FppCameraSocketName = FName("HeadSocket");
 
@@ -101,10 +94,6 @@ public:
 	// 第一人称视角骨骼
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FppRig")
 	TObjectPtr<USkeletalMeshComponent> FppSkeletalMesh;
-
-	// 第三人称视角骨骼（完整）
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TppRig")
-	TObjectPtr<USkeletalMeshComponent> TppSkeletalMesh;
 
 	// ASC
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AbilitySystem")
